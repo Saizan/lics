@@ -1,0 +1,422 @@
+%-----------------------------------------------------------------------------
+%
+%               Template for sigplanconf LaTeX Class
+%
+% Name:         sigplanconf-template.tex
+%
+% Purpose:      A template for sigplanconf.cls, which is a LaTeX 2e class
+%               file for SIGPLAN conference proceedings.
+%
+% Guide:        Refer to "Author's Guide to the ACM SIGPLAN Class,"
+%               sigplanconf-guide.pdf
+%
+% Author:       Paul C. Anagnostopoulos
+%               Windfall Software
+%               978 371-2316
+%               paul@windfall.com
+%
+% Created:      15 February 2005
+%
+%-----------------------------------------------------------------------------
+
+
+\documentclass{sigplanconf}
+
+% The following \documentclass options may be useful:
+
+% preprint      Remove this option only once the paper is in final form.
+% 10pt          To set in 10-point type instead of 9-point.
+% 11pt          To set in 11-point type instead of 9-point.
+% authoryear    To obtain author/year citation style instead of numeric.
+
+\usepackage{amsmath}
+\usepackage{todonotes}
+\newcommand{\mytodo}[2][]{\todo[color=gray!20,size=\scriptsize,fancyline,#1]{#2}}
+\newcommand{\redtodo}[2][]{\todo[color=red!20,size=\scriptsize,fancyline,#1]{#2}}
+
+\begin{document}
+
+\special{papersize=8.5in,11in}
+\setlength{\pdfpageheight}{\paperheight}
+\setlength{\pdfpagewidth}{\paperwidth}
+
+\conferenceinfo{ICFP '15}{September 1--3, 2015, Vancouver, British Columbia, Canada}
+\copyrightyear{2015}
+%% camera-ready data
+\copyrightdata{978-1-nnnn-nnnn-n/yy/mm}
+\doi{nnnnnnn.nnnnnnn}
+
+% Uncomment one of the following two, if you are not going for the
+% traditional copyright transfer agreement.
+
+%\exclusivelicense                % ACM gets exclusive license to publish,
+                                  % you retain copyright
+
+%\permissiontopublish             % ACM gets nonexclusive license to publish
+                                  % (paid open-access papers,
+                                  % short abstracts)
+
+\titlebanner{banner above paper title}        % These are ignored unless
+\preprintfooter{short description of paper}   % 'preprint' option specified.
+
+\title{Total (Co)Programming with Guarded Recursion}
+%%\subtitle{Subtitle Text, if any}
+
+\authorinfo{Andrea Vezzosi}
+           {Chalmers Univerisity of Technology}
+           {vezzosi@chalmers.se}
+%% \authorinfo{Name2\and Name3}
+%%            {Affiliation2/3}
+%%            {Email2/3}
+
+\maketitle
+
+\begin{abstract}
+In total functional (co)programming valid programs are guaranteed to
+always produce (part of) their output in a finite number of steps.
+
+Enforcing this property while not sacrificing expressivity has been
+challenging, traditionally systems like Agda and Coq have relied on a
+syntactic restriction on (co)recursive calls, which is inherently
+anti-modular and sometimes leads to unexpected interactions with new
+features.
+
+Guarded recursion, first introduced by Nakano, has been recently
+applied in the coprogramming case to ensure totality through typing
+instead, by capturing through a new modality the relationship between
+the consumption and the production of data.
+
+In this paper we show how that approach can be extended to
+additionally ensure termination of recursive programs, through the
+introduction of a dual modality and the interaction between the
+two. As in the coprogramming case, however, we need clock variables to
+separate different flows of data. Existential quantification over
+clocks then recovers inductive types from guarded ones, dually to how
+universal quantification recovers coinductive types.
+
+%% - guarded recursion
+%% - new modality
+%% - existential
+
+\end{abstract}
+
+\category{CR-number}{subcategory}{third-level}
+
+% general terms are not compulsory anymore,
+% you may leave them out
+\terms
+term1, term2
+
+\keywords
+keyword1, keyword2
+
+\section{Introduction}
+To get a recursive program to pass the standard termination checkers
+of systems like Coq or Agda, the recursive calls must have
+structurally smaller arguments. This is the case for the $map$ function on lists.
+\begin{verbatim}
+map : ∀ {A B : Set} → (A → B) → List A → List B
+map f []       = []
+map f (x ∷ xs) = f x ∷ map f xs
+\end{verbatim}
+Here the argument $xs$ is manifestly smaller than $x ∷ xs$ because
+it's a direct ``subtree''.
+
+However such a syntactic check gets in the way of code reuse and
+compositionality, especially when trying to use higher-order
+combinators.
+
+\begin{verbatim}
+data RoseTree a = Node (List (RoseTree a))
+
+mapRT : ∀ {A B : Set} → (A → B) → RoseTree A → RoseTree B
+mapRT f (Node ts) = map (\ t -> mapRT f t) ts
+\end{verbatim}
+The definition of mapRT is not accepted because syntactically $t$ has
+no relation to $Node ts$, we need to pay attention to the semantics of
+$map$ to accept this definition as terminating, in fact a common
+workaround is to essentially inline the code for $map$.
+\begin{verbatim}
+mapRT : ∀ {A B : Set} → (A → B) → RoseTree A → RoseTree B
+mapRT f (Node ts) = mapmapRT f ts
+  where
+    mapmapRT f []       = []
+    mapmapRT f (t ∷ ts) = mapRT f t ∷ mapmapRT f ts    
+\end{verbatim}
+
+Here we have spelled out the nested recursion as a function
+$mapmapRT$, and the checker can figure out that $mapRT$ is only going
+from the call $mapRT f (Node (t ∷ ts))$ to $mapRT f t$, so it's accepted.
+
+Such a system then actively fights abstraction, and offers little
+appeals other than sticking to some specific ``design patterns'' for
+(co)recursive definitions. From that comes the temptation to put more
+sophisticated heuristics into the checker, which from time to time
+need to be retracted.\mytodo{expand on prolem with univalence? at least add citations}
+
+Recently there's been a fair amount of research into moving to the
+type level the information about how functions consume and produce
+data, so that totality checking is reduced to type-checking
+\cite{BobConor} \cite{Rasmus} or close to it \cite{Andreas}, \cite{Foundational Coinduction}.
+
+This paper extends to the case of recursion
+the previous work on Guarded Recursion \cite{BobConor} \cite{Rasmus},
+which was focused on corecursion and where inductive types were only
+given their primitive recursor, by presenting a more relaxed model where
+the connectives for guarded recursion can convive with their duals.
+
+We make the following contributions:
+\begin{itemize}
+\item We define a core type system which supports total programming by
+  combining guarded recursion, both existential and universal clock
+  quantification and a new delay modality. From these primitives we
+  can derive both (finitely branching) initial algebras and final
+  coalgebras, i.e. inductive and coinductive datatypes. The type
+  system is an extension of Martin Loef Type Theory.
+\item We give an interpretation of the system into a relationally
+  parametric model of dependent type theory \cite{atkey:param-model},
+  drawing a parallel between clock quantification and parametric
+  polymorphism.
+\item In particular we show how representationally independent
+  existential types can be defined in a predicative way by truncating
+  sigma types to the universe of discrete reflexive graphs.
+\end{itemize}
+
+
+%% - Describe Problem
+%%    - problem 1: replace syntactic checks
+%%            - examples of anti-modularity? 
+%%               - rose tree
+%%               - div for later
+%%            - inconsistencies? with univalence i mean 
+%%            - too much stuff? Write it, can be moved.
+%%    - problem 2: guarded recursion applied only to corecursion
+%%       - coinductive types defined with guards and fixpoints but inductive types as primitive
+      
+%% - List the contributions
+%%   - dualize! (find better name than codelay)
+%%   - allows codelay and existential -- why no codelay and pure for delay?
+%%   - extension on MLTT with delay and codelay mod, fixpoints on universes, quantifiers over clock variables.
+%%   - denotational model based on logical relations/parametricity
+%%   - existential quant. as representationally independent one via relational truncation
+%%  \ref{termination-univ-Agda} \ref{termination-univ-Coq}
+
+%% \Section{2}
+%%   - guarded rose-tree example, don't show fix
+%%   - how do you really write introductions for e.g. nil, or zero,  oh actually (A ~ ∃ k, A) when k free in A
+%%   - dualize! but 
+%%   - why different semantics, ``i don't like non-termination''
+%%   - comparing
+%%      - model makes us give up general pure : a -> delay a
+%%      - example hard to do with sized types? mostly reasoning, or for coinduction something from the HOL paper
+%%                                          also hard to ``forget'' sizes (find example?)
+%%                                          - recognizers! Recognizers.agda
+%%   - try to define a universe ala induction-recursion. ala guardedness-preserving, see release notes. 
+
+The text of the paper begins here.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+
+
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+More text.
+
+Lots of text.
+
+\appendix
+\section{Appendix Title}
+
+This is the text of the appendix, if you need one.
+
+\acks
+
+Acknowledgments, if needed.
+
+% We recommend abbrvnat bibliography style.
+
+\bibliographystyle{abbrvnat}
+
+% The bibliography should be embedded for final submission.
+
+\begin{thebibliography}{}
+\softraggedright
+
+\bibitem[Smith et~al.(2009)Smith, Jones]{smith02}
+P. Q. Smith, and X. Y. Jones. ...reference text...
+
+\end{thebibliography}
+
+
+\end{document}
+
+%                       Revision History
+%                       -------- -------
+%  Date         Person  Ver.    Change
+%  ----         ------  ----    ------
+
+%  2013.06.29   TU      0.1--4  comments on permission/copyright notices
