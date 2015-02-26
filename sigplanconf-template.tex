@@ -20,7 +20,7 @@
 %-----------------------------------------------------------------------------
 
 
-\documentclass{sigplanconf}
+\documentclass[cm]{sigplanconf}
 
 % The following \documentclass options may be useful:
 
@@ -30,9 +30,12 @@
 % authoryear    To obtain author/year citation style instead of numeric.
 
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{todonotes}
 \newcommand{\mytodo}[2][]{\todo[color=gray!20,size=\scriptsize,fancyline,#1]{#2}}
 \newcommand{\redtodo}[2][]{\todo[color=red!20,size=\scriptsize,fancyline,#1]{#2}}
+%include agda.fmt
+\input{macros.tex}
 
 \begin{document}
 
@@ -124,7 +127,8 @@ it's a direct ``subtree''.
 
 However such a syntactic check gets in the way of code reuse and
 compositionality, especially when trying to use higher-order
-combinators.
+combinators like in the following example defining a mapping function
+for rose trees.
 
 \begin{verbatim}
 data RoseTree a = Node (List (RoseTree a))
@@ -141,7 +145,7 @@ mapRT : ∀ {A B : Set} → (A → B) → RoseTree A → RoseTree B
 mapRT f (Node ts) = mapmapRT f ts
   where
     mapmapRT f []       = []
-    mapmapRT f (t ∷ ts) = mapRT f t ∷ mapmapRT f ts    
+    mapmapRT f (t ∷ ts) = mapRT f t ∷ mapmapRT f ts
 \end{verbatim}
 
 Here we have spelled out the nested recursion as a function
@@ -177,11 +181,45 @@ We make the following contributions:
   parametric model of dependent type theory \cite{atkey:param-model},
   drawing a parallel between clock quantification and parametric
   polymorphism.
-\item In particular we show how representationally independent
-  existential types can be defined in a predicative way by truncating
-  sigma types to the universe of discrete reflexive graphs.
+\item In particular we show how existential types which support
+  representation independence can be defined in a predicative system
+  by truncating sigma types to the universe of discrete reflexive
+  graphs.
 \end{itemize}
 
+\subsection{Guarded Recursion}
+
+The basic principle of Guarded Recusion is to keep track of the
+guardedness information in the types. Going back to the rose tree
+example we can give the data constructor $Node$ a more precise type.
+
+\begin{verbatim}
+Node : (List (\trib RoseTree a)) → RoseTree a
+\end{verbatim}
+
+The type constructor $\trib$ makes explicit that the subtrees are
+built, and can be consumed, in fewer time/steps than the resulting
+tree. \mytodo{is time still a good metaphor? In the end this is all
+  about well-founded induction, maybe I should be upfront about that
+  from the start.}
+
+Once we've done that we can write $mapRT$ by reusing $map$.
+\begin{verbatim}
+mapRT : ∀ {A B : Set} → (A → B) → RoseTree A → RoseTree B
+mapRT f (Node ts) = map (\ t -> mapRT f t) ts
+\end{verbatim}
+
+Here the recursive call stands for an implicit use of a guarded
+fixpoint combinator we will introduce later \ref{fix0}, so it gets
+type $(A -> B) -> \trib RoseTree A → \trib RoseTree B$, i.e. it can
+only handle smaller trees but also produces smaller trees, and the
+definition typechecks.
+
+In general we will have to deal with data of unrelated sizes, so we
+instead have a family of type constructors $\trib^\kappa$ indexed by
+clock variables $\kappa$.
+
+- clock variables to disentangle, existential to forget
 
 %% - Describe Problem
 %%    - problem 1: replace syntactic checks
@@ -205,13 +243,16 @@ We make the following contributions:
 %%   - guarded rose-tree example, don't show fix
 %%   - how do you really write introductions for e.g. nil, or zero,  oh actually (A ~ ∃ k, A) when k free in A
 %%   - dualize! but 
-%%   - why different semantics, ``i don't like non-termination''
+%%   - why different kind of semantics? (i.e. no CPO), ``i don't like non-termination''
 %%   - comparing
 %%      - model makes us give up general pure : a -> delay a
 %%      - example hard to do with sized types? mostly reasoning, or for coinduction something from the HOL paper
 %%                                          also hard to ``forget'' sizes (find example?)
 %%                                          - recognizers! Recognizers.agda
+%%      - big difference with BobConorRasmus, arrow types are not kripke, cite neelk's frp lang?
+%%   - formalized irrelevancy of accessibility proofs(?)
 %%   - try to define a universe ala induction-recursion. ala guardedness-preserving, see release notes. 
+%%   - apparently we can do nested/mixed recursion, see CatSZ.agda
 
 The text of the paper begins here.
 
