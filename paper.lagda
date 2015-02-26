@@ -226,10 +226,10 @@ combinators like in the following example defining a mapping function
 for rose trees.
 
 \begin{code}
-data RoseTree a = Node (List (RoseTree a))
+data RoseTree A = Node A (List (RoseTree A))
 
 mapRT : (A → B) → RoseTree A → RoseTree B
-mapRT f (Node ts) = map (\ t -> mapRT f t) ts
+mapRT f (Node a ts) = Node (f a) (map (\ t -> mapRT f t) ts)
 \end{code}
 The definition of mapRT is not accepted because syntactically |t| has
 no relation to |Node ts|, we need to pay attention to the semantics of
@@ -237,7 +237,7 @@ no relation to |Node ts|, we need to pay attention to the semantics of
 workaround is to essentially inline the code for |map|.
 \begin{code}
 mapRT : (A → B) → RoseTree A → RoseTree B
-mapRT f (Node ts) = mapmapRT f ts
+mapRT f (Node a ts) = Node (f a) (mapmapRT f ts)
   where
     mapmapRT f []        = []
     mapmapRT f (t ∷ ts)  = mapRT f t ∷ mapmapRT f ts
@@ -245,7 +245,7 @@ mapRT f (Node ts) = mapmapRT f ts
 
 Here we have spelled out the nested recursion as a function
 |mapmapRT|, and the checker can figure out that |mapRT| is only going
-from the call |mapRT f (Node (t ∷ ts))| to |mapRT f t|, so it's accepted.
+from the call |mapRT f (Node a (t ∷ ts))| to |mapRT f t|, so it's accepted.
 
 Such a system then actively fights abstraction, and offers little
 appeals other than sticking to some specific ``design patterns'' for
@@ -271,14 +271,14 @@ We make the following contributions:
   quantification and a new delay modality. From these primitives we
   can derive both (finitely branching) initial algebras and final
   coalgebras, i.e. inductive and coinductive datatypes. The type
-  system is an extension of Martin Loef Type Theory.
+  system is an extension of Martin L\"{o}f Type Theory.
 \item We give an interpretation of the system into a relationally
   parametric model of dependent type theory \cite{atkey:param-model},
   drawing a parallel between clock quantification and parametric
   polymorphism.
 \item In particular we show how existential types which support
   representation independence can be defined in a predicative system
-  by truncating sigma types to the universe of discrete reflexive
+  by truncating $\Sigma-$types to the universe of discrete reflexive
   graphs.
 \end{itemize}
 
@@ -289,7 +289,7 @@ guardedness information in the types. Going back to the rose tree
 example we can give the data constructor |Node| a more precise type.
 
 \begin{code}
-Node : (List (trib RoseTree A)) → RoseTree A
+Node : A -> (List (trib RoseTree A)) → RoseTree A
 \end{code}
 
 The type constructor |trib| makes explicit that the subtrees are
@@ -301,7 +301,7 @@ tree. \mytodo{is time still a good metaphor? In the end this is all
 Once we've done that we can write |mapRT| by reusing |map|.
 \begin{code}
 mapRT : (A → B) → RoseTree A → RoseTree B
-mapRT f (Node ts) = map (\ t -> mapRT f t) ts
+mapRT f (Node a ts) = Node a (map (\ t -> mapRT f t) ts)
 \end{code}
 
 Here the recursive call stands for an implicit use of a guarded
@@ -321,12 +321,16 @@ In general we will have to deal with data of unrelated sizes, so
 instead of |trib| we have a family of type constructors |tribk| indexed by clock
 variables $\kappa$, which are introduced by the quantifiers |∀ k| and
 |∃ k|.
+Often we will leave the clocks implicit at the level of terms, however where appropriate we will use |λ| abstraction and application for |∀ k|, and the introduction |(pack)| and pattern matching for |∃ k|.
+\begin{code}
+(pack) : ∀ k . A hk -> ∃ k . A hk
+\end{code}
 
 The proper type of |Node| will then have a clock indexing the result
 type |RoseTree uk|, which is then the type of trees bounded in size by
 the clock |k|.
 \begin{code}
-Node : ∀ k . List (tribk RoseTree uk A) → RoseTree uk A
+Node : ∀ k . A → List (tribk RoseTree uk A) → RoseTree uk A
 \end{code}
 
 As part of the interface of |tribk| we have the operation |extract|
@@ -340,19 +344,19 @@ positive position, in the model (Section \ref{sec:model}) it will correspond to 
 with regard to time. Two particular cases are when |k| is
 free in |A| and when |A = tribk B|.
 
-Another primitive operation is |guardb|.
-\begin{code}
-guardb : ∃ k . A -> ∃ k . tribk A
-\end{code}
+%% Another primitive operation is |guardb|.
+%% \begin{code}
+%% guardb : (∃ k . A) -> ∃ k . tribk A
+%% \end{code}
 
-Intuitively |guardb| tells us that we can always pick a clock that has
-more time left than a given one, so that we can insert a |tribk| to
-guard the value contained in the existential. It has an inverse that
-we call |forceb|.
+%% Intuitively |guardb| tells us that we can always pick a clock that has
+%% more time left than a given one, so that we can insert a |tribk| to
+%% guard the value contained in the existential. It has an inverse that
+%% we call |forceb|.
 
-\begin{code}
-forceb : ∃ k . tribk A -> ∃ k . A
-\end{code}
+%% \begin{code}
+%% forceb : (∃ k . tribk A) -> ∃ k . A
+%% \end{code}
 
 
 %% unfold example.
@@ -379,19 +383,17 @@ function |downfrom|, which returns a list counting down to $1$.
 \begin{code}
 Zero  : ∀ k . Nat uk
 Suc   : ∀ k . tribk Nat uk -> Nat uk
-(pack) : ∀ k . A hk -> ∃ k. A hk
 
-downfrom : (∃ k . Nat uk) → List (∃ k . Nat uk)
-downfrom (pack(k)(n)) =
-  unfold   (λ k' n ->   case n of
+downfrom : ∀ k . Nat uk → List (∃ k . Nat uk)
+downfrom =
+  unfold   (λ k n ->   case n of
                                          Zero    -> Left _
-                                         Suc n'  -> Right ((pack(k')(n)) , n'))
-           n
+                                         Suc n'  -> Right ((pack(k)(n)) , n'))
 \end{code}
 \mytodo{find other symbol for introduction of existentials}
 The existential quantification allows us to forget the size
-information of the naturals in the list, so that we don't have to keep
-them synchronized with the clock |k'| given to the function we unfold.
+information of the naturals in the list, so that we do not have to keep
+them synchronized with the clock |k| given to the function we unfold.
 
 
 \subsection{Fixedpoint combinators}
@@ -433,7 +435,7 @@ the combinator |star|, which can be used to define |fixb| in terms of
 \begin{code}
 _star_ : ∀ k . tritk (A hk -> B hk) -> tribk A hk -> tribk B hk
 
-fixb f = fix (λ k r . f k (r stark))
+fixb f = fix (λ k r . f k (λ x . r stark x))
 \end{code}
 
 With a suitable |Stream uk| type we can then define |ones|.
@@ -513,7 +515,7 @@ F. In fact for any two clocks |k , k'| we can derive |(pack k tt) = (pack k' tt)
 =  (pack k' tt)
 \end{code}
 
-Intuitively Nat won't be the initial algebra of |(⊤ +)| unless |Nat ~=
+Intuitively Nat will not be the initial algebra of |(⊤ +)| unless |Nat ~=
 T + Nat| holds, so we must be able to support both an interface and an
 equational theory where clocks play no role.
 
@@ -554,7 +556,7 @@ To clarify the flow of |Time| we adopt a syntax inspired by Sized
 Types \cite{Andreas} instead, it will also offer more flexibility in
 the dependent case. In fact the first step is to add to a dependently
 typed language (Figure \ref{fig:TT}) a new type |Time| together with inequality
-|(i j : Time) ⊢ i ≤ j| and zero and successor |0 : Time|, |↑ : Time -> Time|
+|(i j : Time) ⊢ i ≤ j| and zero |0 : Time| and successor |↑ : Time -> Time|
 (Figure \ref{fig:Time}).
 
 Universal quantification over |Time| is simply done with a dependent
@@ -564,8 +566,8 @@ Time) -> (j : Time) -> ↑ j ≤ i -> Nat uj|, where the smaller time |j|
 is explicitly mentioned and passed as the time parameter of the
 guarded natural numbers type.
 
-In the following we use the shorthand |∀ j : < i . A| in place of
-|((j : Time) -> ↑ j ≤ i -> A|, |λ j| in place of |λ j jlti| and |∀ i
+In the following we use the shorthand |∀ j < i . A| in place of
+|(j : Time) -> ↑ j ≤ i -> A|, and |λ j| in place of |λ j (p : ↑ j ≤ i)| and |∀ i
 . A| in place of |(i : Time) -> A|.
 
 \mytodo{is there a more standard notation for $\Pi$? should I just
@@ -576,21 +578,21 @@ which also makes the implementation something like the |S| combinator.
 Given a smaller time |j| we get the values of |f| and |x| at that time
 and apply one to the other.
 \begin{code}
-(<*>) :  ∀ i . (∀ j : < i . A -> B)
-         ->    (∀ j : < i . A) -> (∀ j : < i . B)
+(<*>) :  ∀ i . (∀ j < i . A -> B)
+         ->    (∀ j < i . A) -> (∀ j < i . B)
 f <*>! x = λ j -> f j (x j)
 \end{code}
 
-With this formulation it's also easy to see how to generalize |<*>| to the
+With this formulation it is also easy to see how to generalize |<*>| to the
 dependent case since we can get hold of |j| and pass that to |x| to obtain valid argument for the dependent type |B|:
 \mytodo{maybe i don't need to give it a different name since it's strictly more general?}
 \begin{code}
-(<*>>) :  ∀ i . (∀ j : < i . (x : A) -> B x)
-          ->    (x : ∀ j : < i . A) -> (∀ j : < i . B (x j))
+(<*>>) :  ∀ i . (∀ j < i . (x : A) -> B x)
+          ->    (x : ∀ j < i . A) -> (∀ j < i . B (x j))
 f <*>>! x = λ j -> f j (x j)
 \end{code}
 
-The existential quantification |∃ i , A| \ref{fig:exists} for |Time|
+The existential quantification |∃ i , A| (Figure \ref{fig:exists}) for |Time|
 however has to be distinct from a plain |Σ| type since allowing an
 unrestricted first projection would let us observe the specific |Time|
 contained. The difference between |∃ i . A| and |Σ (i : Time). A| is
@@ -605,15 +607,15 @@ We also add a form of $\eta$ expansion for |∃ i.|, which will be
 necessary to ensure the proper computation behaviour for induction.
 
 Dually to |tritk| we have that |tribk| corresponds to a bounded |∃|
-and we allow similar shorthands |∃ (j : < i). A| for |∃ j . ↑ j ≤ i ×
+and we allow similar shorthands |∃ (j < i). A| for |∃ j . ↑ j ≤ i ×
 A| and |(pack j a)| for |(pack j (jlti , a))|.
 
 As an example we show the implementation of |star|, where the presence
 of |El| on the return type ensures that the pattern match on |(pack j
 x)| is justified:
 \begin{code}
-(star) :  ∀ i . (∀ j : < i . A -> B)
-          ->    (∃ j : < i . A) -> El (∃ j : < i . B)
+(star) :  ∀ i . (∀ j < i . A -> El B)
+          ->    (∃ j < i . A) -> El (∃ j < i . B)
 f stari (pack j x) = (pack j (f j x))
 \end{code}
 
@@ -625,16 +627,16 @@ solutions in Section \ref{sec:SN}.
 
 We can also implement |extract| for |A : U|:
 \begin{code}
-extract : (A : U) -> ∀ i . (∃ j : < i . El A) → A
+extract : (A : U) -> ∀ i . (∃ j < i . El A) → El A
 extract A i (pack j a) = a
 \end{code}
 
 And the pair |guardb|, |forceb|:
 \begin{code}
-guardb : ∃ i . A(i) -> ∃ i . ∃ (j : < i). A(j)
-guardb (pack i a) = (pack (↑ i) (pack j a))
+guardb : (∃ i . A(i)) -> ∃ i . ∃ (j < i). A(j)
+guardb (pack i a) = (pack (↑ i) (pack i a))
 
-forceb : ∃ i . ∃ (j : < i). A(j) → ∃ i . A(i)
+forceb : (∃ i . ∃ (j < i). A(j)) → ∃ i . A(i)
 forceb (pack i (pack j a)) = (pack j a)
 \end{code}
 
@@ -643,11 +645,12 @@ isomorphism, together with the other canonical functions that witness
 the isomorphisms of Figure \ref{fig:isos}.
 In the case of |∀ i.| we additionally have the usual isomorphisms that
 can be implemented for dependent functions:
-\begin{tabular}{c l}
-|∀ i. A × B ≅ ∀ i. A × ∀ i. B| \\
-|∀ i. (x : A) → B ≅ (x : A) → ∀ i . B| & |i ∉ A|\\
-|∀ i. ∀ j. A ≅ ∀ j. ∀ i. A|\\
-\end{tabular}
+
+\begin{align*}
+|∀ i. A × B |\, &|≅|\, |∀ i. A × ∀ i. B| \\
+|∀ i. (x : A) → B|\, &|≅|\, |(x : A) → ∀ i . B| & |i ∉ A|\\
+|∀ i. ∀ j. A|\, &|≅|\, |∀ j. ∀ i. A|\\
+\end{align*}
 
 %include rules.lagda
 
@@ -664,23 +667,23 @@ algebras for any functor that properly commutes with |∃ i.|.
 \subsection{Recursive Type Equations}
 
 For any function |F : U -> U| we can build |Fixb F : Time -> U| such
-that |Fixb F i = F (∃ (j : < i). Fixb F j)|.
+that |Fixb F i = F (∃ (j < i). Fixb F j)|.
 
-The first step is to recognize that |∃ (j : < i).| can take an element
-of |∀ (j : < i). U| as input rather than |U| or |Time -> U|, defining
+The first step is to recognize that |∃ (j < i).| can take an element
+of |∀ (j < i). U| as input rather than |U| or |Time -> U|, defining
 the combinator |wtribi|.
 
 \begin{code}
-wtribi : (∀ (j : < i). U) -> U
-wtribi X = ∃ (j : < i). X j
+wtribi : (∀ (j < i). U) -> U
+wtribi X = ∃ (j < i). X j
 \end{code}
 
 Using the time analogy for intuition, in a case where we have no time
-left, so there's no |j : < i|, we already know that |∃ (j : < i). A|
+left, so there's no |j < i|, we already know that |∃ (j < i). A|
 is equivalent to |⊥| without having to know what |A| is, only if we
 actually have time to spare we will look into it.
 
-Given |wtribi| we can turn |F : U -> U| into |∀ i . (∀ (j : < i). U) -> U| by
+Given |wtribi| we can turn |F : U -> U| into |∀ i . (∀ (j < i). U) -> U| by
 precomposition and define |Fixb| through |fix|, giving us the desired
 property.
 
@@ -690,8 +693,8 @@ Fixb = fix (λ i X -> F (wtribi X))
 
 In the same way we define |Fixt| by |wtriti|:
 \begin{code}
-wtriti : (∀ (j : < i). U) -> U
-wtriti X = ∃ (j : < i). X j
+wtriti : (∀ (j < i). U) -> U
+wtriti X = ∃ (j < i). X j
 \end{code}
 
 \subsection{Induction on Nat}
@@ -727,11 +730,11 @@ indNat P z s (pack i n) =
 \end{code}
 
 Reading carefully we see that |s (pack j n) (rec j n)| has type |El (P
-(Suc (pack j n)))| which we can reduce to |El (P (pack (↑ i) (inr
-(pack i n))))| while the expected type is |El (P (pack i (inr (pack j
-n))))|.  We can however conclude that |(pack (↑ i) (inr (pack i n)))|
+(Suc (pack j n)))| which we can reduce to |El (P (pack (↑ j) (inr
+(pack j n))))| while the expected type is |El (P (pack i (inr (pack j
+n))))|.  We can however conclude that |(pack (↑ j) (inr (pack j n)))|
 and |(pack i (inr (pack j n)))| are equal since they both get sent to
-|(pack j n)| by the |∃ i . ⊤ + (∃ (j : < i) . A) ≅ ⊤ + ∃ i. A|
+|(pack j n)| by the |∃ i . ⊤ + (∃ (j < i) . A) ≅ ⊤ + ∃ i. A|
 isomorphism.
 
 For an induction principle we also want the right computational
@@ -767,11 +770,11 @@ An |X|-indexed functor |F| is then a pair of terms
 \end{code}
 such that |F₁| preserves identities and composition.
 
-As an example we can make |∃ (j : < i).| into a |(Time × X)|-indexed
+As an example we can make |∃ (j < i).| into a |(Time × X)|-indexed
 functor by defining |trib| like so:
 \begin{code}
 trib₀ : (Time × X → U) → (Time × X → U)
-trib₀ A (i , x) = ∃ (j : < i) . A (j , x)
+trib₀ A (i , x) = ∃ (j < i) . A (j , x)
 \end{code}
 the action on morphisms is also pointwise and the |\eta| rule for |∃|
 and |×| are enough to preserve identities and composition.
@@ -782,7 +785,7 @@ functor |F[trib -]| that threads the |Time| component to |trib|.
 For each |X|-indexed functor |F| we obtain the initial algebra of
 |F[trib -]| by
 \begin{code}
-mutri F (i , x) = fix (\ i A x → F (\ y → ∃ (j : < i) . A (j , x)) i x
+mutri F (i , x) = fix (\ i A x → F (\ y → ∃ (j < i) . A (j , x)) i x
 \end{code}
 so that |mutri F = F[trib mutri F]|.
 
@@ -832,7 +835,7 @@ The above result can be dualized to obtain final coalgebras of
 For each |X|-indexed functor |F| we obtain the final coalgebra of
 |F[trit -]| by
 \begin{code}
-nutri F (i , x) = fix (\ i A x → F (\ y → ∀ (j : < i) . A (j , x)) i x
+nutri F (i , x) = fix (\ i A x → F (\ y → ∀ (j < i) . A (j , x)) i x
 \end{code}
 so that |nutri F = F[trit nutri F]|.
 

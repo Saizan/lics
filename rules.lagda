@@ -22,7 +22,7 @@
 \and \inferrule{ }{|Γ ⊢ 0 : Time|}
 \and \inferrule{|Γ ⊢ t : Time|}{|Γ ⊢ ↑ t : Time|}
 \and \inferrule{|Γ ⊢ t_0 : Time| \\ |Γ ⊢ t_0 : Time|}
-               {|Γ ⊢ t_0 <= t_1|}
+               {|Γ ⊢ t_0 <= t_1 : Type|}
 \end{mathpar}
 \caption{The |Time| type}
 \label{fig:Time}
@@ -37,10 +37,14 @@
                 |Γ ⊢ f : ∀ i . (∀ j : < i . A(j)) -> A(i)|}
                {|fix f : ∀ i . A(i)|}
 \and \inferrule{|f i (guardt u i) = u i|}{|u = fix f|}
-\and \inferrule{ }{|guardt f = λ i j -> f j|}
-
 \end{mathpar}
-\caption{Guarded Fixpoint combinator}
+where
+\begin{code}
+guardt : (∀ i. A(i)) -> ∀ i. ∀ j < i. A(j)
+guardt f = λ i j -> f j
+\end{code}
+
+\caption{Guarded Fixpoint}
 \label{fig:fix}
 \end{figure}
 
