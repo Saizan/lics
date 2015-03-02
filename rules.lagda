@@ -34,7 +34,7 @@
 \begin{mathpar}
 %% Fix
 \inferrule{|Γ , i : Time ⊢ A(i) : Type| \\
-                |Γ ⊢ f : ∀ i . (∀ j : < i . A(j)) -> A(i)|}
+                |Γ ⊢ f : ∀ i . (∀ j < i . A(j)) -> A(i)|}
                {|fix f : ∀ i . A(i)|}
 \and \inferrule{|f i (guardt u i) = u i|}{|u = fix f|}
 \end{mathpar}
@@ -67,23 +67,24 @@ guardt f = λ i j -> f j
 \label{fig:codes}
 \end{figure}
 
-\begin{figure}
-\begin{tabular}{c l}
-|∀ i . El A ≅ El A| & |i ∉ fv(A)| \\
-|(∀ i. A) + (∀ i. A) ≅ ∀ i. (A + B)| \\
-|∀ i . El (A(i)) ≅ ∀ i. ∀ (j : < i). El (A(j))| & (|guardt| , |forcet|) \\
-|∀ i. Σ (x : El A). B ≅ Σ (x : El A). ∀ i . B| & |i ∉ A|\\
-\end{tabular}
+\begin{figure*}
+\begin{align*}
+|∀ i . El A| &≅ |El A| & |i ∉ fv(A)| \\
+|∀ i . El (A(i))| &≅ |∀ i. ∀ (j < i). El (A(j))| & (|guardt| , |forcet|) \\
+|(∀ i. A) + (∀ i. A)| &≅ |∀ i. (A + B)| \\
+|∀ i. Σ (x : El A). B| &≅ |Σ (x : El A). ∀ i . B| & |i ∉ A|\\
+\\
+|∃ i . El A| &≅ |El A| & |i ∉ fv(A)| \\
+|∃ i . A(i)| &≅ |∃ i. ∃ (j < i). A(j)| & (|guardb| , |forceb|) \\
+|(∃ i. A) + (∃ i. B)| &≅ |∃ i. (A + B)|\\
+|(∃ i. A(i)) × (∃ i. B(i))| &≅ |∃ i. (∃ (j < i) . A(j) × ∃ (j < i). B(j))|\\
+|Σ (x : El A). ∃ i. B| &≅ |∃ i. Σ (x : El A). B| & |i ∉ fv(A)|\\
+|∃ i . (x : El A) -> B| &≅ |(x : El A) → ∃ i . B| & \mbox{finite } |El A|, |i ∉ fv(A)| \\
+|∃ i . ∃ j . A| &≅ |∃ j . ∃ i . A|
+\end{align*}
 
-\begin{tabular}{c l}
-|∃ i . El A ≅ El A| & |i ∉ fv(A)| \\
-|(∃ i. A) + (∃ i. B) ≅ ∃ i. (A + B)|\\
-|(∃ i. A(i)) × (∃ i. B(i)) ≅ ∃ i. (∃ (j : < i) . A(j) × ∃ (j : < i). B(j))|\\
-|∃ i . A(i) ≅ ∃ i. ∃ (j : < i). A(j)| & (|guardb| , |forceb|)\\
-|Σ (x : El A). ∃ i. B ≅ ∃ i. Σ (x : El A). B| & (i ∉ fv(A))\\
-|∃ i . (x : El A) -> B ≅ (x : El A) → ∃ i . B| & finite |El A|, (i ∉ fv(A)) \\
-|∃ i . ∃ j . A ≅ ∃ j . ∃ i . A| \\
-\end{tabular}
+
+
 \caption{Type Isomorphisms}
 \label{fig:isos}
-\end{figure}
+\end{figure*}
