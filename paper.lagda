@@ -55,7 +55,7 @@
 %%format <=  = "{<=}"
 %format →   = "\mathrel{→}"
 %format sp  = "\mkern-2mu"
-
+%format : = "\!\!:\!"
 %format 0    = "0"
 %format 1    = "1"
 %format 2    = "2"
@@ -71,6 +71,7 @@
 %format true  = "\constructor{true}"
 %format false = "\constructor{false}"
 %format trib  = "\mathord{\trib}"
+%format trib0  = "\mathord{\trib}_0"
 %format tribk = "\mathord{\trib^\kappa}"
 %format trit  = "\mathord{\trit}"
 %format tritk = "\mathord{\trit^\kappa}"
@@ -103,6 +104,7 @@
 %format jlti = "j\!<\!i"
 %format e0 = e "_0"
 %format e1 = e "_1"
+%format e2 = e "_2"
 %format Fixb = Fix "_\bot"
 %format Fixt = Fix "_\top"
 %format wtribi = "\triangleright_\bot^i"
@@ -174,10 +176,11 @@ In total functional (co)programming valid programs are guaranteed to
 always produce (part of) their output in a finite number of steps.
 
 Enforcing this property while not sacrificing expressivity has been
-challenging, traditionally systems like Agda and Coq have relied on a
-syntactic restriction on (co)recursive calls, which is inherently
-anti-modular and sometimes leads to unexpected interactions with new
-features.
+challenging. Traditionally systems like Agda and Coq have relied on a
+syntactic restriction on (co)recursive calls, but this is inherently
+anti-modular.
+%% and sometimes leads to unexpected interactions with new
+%% features.
 
 Guarded recursion, first introduced by Nakano, has been recently
 applied in the coprogramming case to ensure totality through typing
@@ -209,21 +212,27 @@ term1, term2
 keyword1, keyword2
 
 \section{Introduction}
-To get a recursive program to pass the standard termination checkers
-of systems like Coq or Agda, the recursive calls must have
-structurally smaller arguments. This is the case for the |map| function on lists.
+
+The standard termination checkers of systems like Coq or Agda rely on
+syntactic checks, and while they employ additional heuristics, they mainly ensure that the recursive calls have
+structurally smaller arguments.
+%% To get a recursive program to pass the standard termination checkers
+%% of systems like Coq or Agda, the recursive calls must have
+%% structurally smaller arguments.
+This is the case for the |map| function on lists:
 \begin{code}
 map : (A → B) → List A → List B
 map f []        = []
 map f (x ∷ xs)  = f x ∷ map f xs
 \end{code}
-Here the argument |xs| is manifestly smaller than |x ∷ xs| because
-it's a direct ``subtree''.
+Here the argument |xs| of |map f xs| is manifestly smaller than the original |(x ∷ xs)| because
+it is a direct ``subtree'', so the definition is accepted.
 
-However such a syntactic check gets in the way of code reuse and
-compositionality, especially when trying to use higher-order
-combinators like in the following example defining a mapping function
-for rose trees.
+However, such a syntactic check gets in the way of code reuse and
+compositionality. This is especially the case when using
+higher-order combinators, because they can appear between a recursive
+call and the actual data it will process. The following definition of
+a mapping function for rose trees is an example of this.
 
 \begin{code}
 data RoseTree A = Node A (List (RoseTree A))
@@ -232,9 +241,9 @@ mapRT : (A → B) → RoseTree A → RoseTree B
 mapRT f (Node a ts) = Node (f a) (map (\ t -> mapRT f t) ts)
 \end{code}
 The definition of mapRT is not accepted because syntactically |t| has
-no relation to |Node ts|, we need to pay attention to the semantics of
+no relation to |Node a ts|, we need to pay attention to the semantics of
 |map| to accept this definition as terminating, in fact a common
-workaround is to essentially inline the code for |map|.
+workaround is to essentially inline the code for |map|\footnote{If the definition of |map| is available, Coq will attempt this automatically}.
 \begin{code}
 mapRT : (A → B) → RoseTree A → RoseTree B
 mapRT f (Node a ts) = Node (f a) (mapmapRT f ts)
@@ -242,32 +251,39 @@ mapRT f (Node a ts) = Node (f a) (mapmapRT f ts)
     mapmapRT f []        = []
     mapmapRT f (t ∷ ts)  = mapRT f t ∷ mapmapRT f ts
 \end{code}
-
 Here we have spelled out the nested recursion as a function
 |mapmapRT|, and the checker can figure out that |mapRT| is only going
-from the call |mapRT f (Node a (t ∷ ts))| to |mapRT f t|, so it's accepted.
+from the call |mapRT f (Node a (t ∷ ts))| to |mapRT f t|, so it is accepted.
 
-Such a system then actively fights abstraction, and offers little
-appeals other than sticking to some specific ``design patterns'' for
-(co)recursive definitions. From that comes the temptation to put more
-sophisticated heuristics into the checker, which from time to time
-need to be retracted.\mytodo{expand on prolem with univalence? at least add citations}
+Such a system then actively fights abstraction, and offers few recourses
+other than sticking to some specific ``design patterns'' for
+(co)recursive definitions.
+\mytodo{say something about increasingly complex heuristics?}
+%%From that comes the temptation to put more
+%%sophisticated heuristics into the checker, which from time to time
+%%need to be retracted.\mytodo{expand on prolem with univalence? at least add citations}
 
-Recently there's been a fair amount of research into moving to the
-type level the information about how functions consume and produce
-data, so that totality checking is reduced to type-checking
-\cite{BobConor} \cite{Rasmus} or close to it \cite{Andreas}, \cite{Foundational Coinduction}.
+Recently there has been a fair amount of research into moving the information about how functions consume and produce
+data to the type level, so that totality checking can be more modular
+\cite{BobConor}, \cite{Rasmus}, \cite{Andreas}. In particular the previous work on Guarded Recursion (\cite{BobConor},
+\cite{Rasmus}) has handled the case of ensuring totality for
+corecursion, i.e. manipulating infinite data. The issue
+of ensuring totality in a modular way for recursion, over well-founded data, was however
+left open. We address that problem by presenting a calculus that supports both corecursion
+and recursion with a single guarded fixed point combinator.
+\mytodo{say something about modalities/quantifiers?}
 
-This paper extends to the case of recursion
-the previous work on Guarded Recursion \cite{BobConor} \cite{Rasmus},
-which was focused on corecursion and where inductive types were only
-given their primitive recursor, by presenting a more relaxed model where
-the connectives for guarded recursion can convive with their duals.
+
+%%This paper extends to the case of recursion
+%%the previous work on Guarded Recursion \cite{BobConor} \cite{Rasmus},
+%%which was focused on corecursion and where inductive types were only
+%%given their primitive recursor, by presenting a more relaxed model where
+%%the connectives for guarded recursion can coexist with their duals.
 
 We make the following contributions:
 \begin{itemize}
 \item We define a core type system which supports total programming by
-  combining guarded recursion, both existential and universal clock
+  combining guarded recursion, existential and universal clock
   quantification and a new delay modality. From these primitives we
   can derive both (finitely branching) initial algebras and final
   coalgebras, i.e. inductive and coinductive datatypes. The type
@@ -496,9 +512,9 @@ fold z f (pack (k) (n)) = fixb (\ k r n ->
   k n
 \end{code}
 
-However it's not enough to package the clock to get the right type,
+However it is not enough to package the clock to get the right type,
 for example we risk having too many |Zero|s if we can tell the
-difference between |(pack k (inl tt))| and |(pack k (inl tt))| for two
+difference between |(pack k (inl tt))| and |(pack k' (inl tt))| for two
 different clocks |k| and |k'|.
 
 The key idea is that values of type |∃ k . A| must keep abstract the
@@ -510,7 +526,7 @@ equational theory where clocks play no role.
 In the calculus we will internalize this invariance over the packaged
 clock as type isomorphisms that we will justify with a parametric
 model (Section \ref{sec:model}). In the specific case of |Nat|, both |(pack k (inl tt))| and
-|(pack k (inl tt))| get sent to |inl tt| by the isomorphism, so we can
+|(pack k' (inl tt))| get sent to |inl tt| by the isomorphism, so we can
 conclude they are equal.
 
 %% In other models of guarded recursion, |∀ k| or analogous modalities
@@ -574,7 +590,7 @@ f <*>! x = λ j -> f j (x j)
 With this formulation it is also easy to see how to generalize |<*>|
 to the dependent case since we can get hold of |j| and pass that to
 |x| to obtain valid argument for the dependent type |B|:
-\mytodo{maybe i don't need to give it a different name since it's strictly more general?}
+\mytodo{maybe i don't need to give it a different name since it is strictly more general?}
 \begin{code}
 (<*>>) :  ∀ i . (∀ j < i . (x : A) -> B x)
           ->    (x : ∀ j < i . A) -> (∀ j < i . B (x j))
@@ -592,7 +608,7 @@ In the model we will see that |∃| is exactly a
 "truncation" of the corresponding |Σ| to the universe |U|
 \ref{sec:model}.
 \mytodo{give some intuition for the Universe as the one of "discrete" types, as opposed to Time and U itself having higher structure?}
-We also add a form of $\eta$ expansion for |∃ i.|, which will be
+We also add a form of $\eta$ expansion for |∃ i|, which will be
 necessary to ensure the proper computation behaviour for induction.
 
 Dually to |tritk| we have that |tribk| corresponds to a bounded |∃|
@@ -633,7 +649,7 @@ forceb (pack i (pack j a)) = (pack j a)
 The model justifies blessing |forceb| and |guardb| with the status of
 isomorphism, together with the other canonical functions that witness
 the isomorphisms of Figure \ref{fig:isos}.
-In the case of |∀ i.| we additionally have the usual isomorphisms that
+In the case of |∀ i| we additionally have the usual isomorphisms that
 can be implemented for dependent functions:
 
 \begin{align*}
@@ -652,7 +668,7 @@ can be implemented for dependent functions:
 In this section we will show how to implement the recursive type
 equations we have used in terms of fixed points on the universe, then
 the induction principle for |Nat|, and lastly we construct initial
-algebras for any functor that properly commutes with |∃ i.|.
+algebras for any functor that properly commutes with |∃ i|.
 
 \subsection{Recursive Type Equations}
 
@@ -704,7 +720,7 @@ Suc (pack i n) = (pack (↑ i) (inr (pack i n)))
 
 Then we can define an induction principle for the type families |P :
 Nat -> U| which live in the universe |U|, since we are restricted by
-the elimination rule of |∃ i.|.
+the elimination rule of |∃ i|.
 
 \begin{code}
 indNat :  (P : Nat -> U)
@@ -762,13 +778,16 @@ such that |F₁| preserves identities and composition.
 As an example we can make |∃ (j < i).| into a |(Time × X)|-indexed
 functor by defining |trib| like so:
 \begin{code}
-trib₀ : (Time × X → U) → (Time × X → U)
-trib₀ A (i , x) = ∃ (j < i) . A (j , x)
+(trib)₀ : (Time × X → U) → (Time × X → U)
+(trib)₀ A (i , x) = ∃ (j < i) . A (j , x)
 \end{code}
-the action on morphisms is also pointwise and the |\eta| rule for |∃|
+the action on morphisms is also pointwise and the $\eta$ rule for |∃|
 and |×| are enough to preserve identities and composition.
 For any |X|-indexed functor |F| we define the |Time × X|-indexed
 functor |F[trib -]| that threads the |Time| component to |trib|.
+\begin{code}
+F[trib A ]₀ (i , x) = F₀ (λ y. ∃ j < i. A y) x
+\end{code}
 
 \subsection{Guarded Initial Algebras}
 For each |X|-indexed functor |F| we obtain the initial algebra of
@@ -782,28 +801,29 @@ The algebra |F[trib mutri F] ⇒ mutri F| is then simply the identity
 and the morphism from any other algebra |f : F[trib A] ⇒ A| is also definable through
 |fix|, which also ensures its uniqueness.
 \begin{code}
-foldtri : (A : Time × X → U) -> (F[trib A] ⇒ A) → mutri F ⇒ A
+foldtri :  (A : Time × X → U) ->
+           (F[trib A] ⇒ A) → mutri F ⇒ A
 foldtri A f (i , x) = fix (\ i foldtri m → f (F (foldtri star) m)) i x
 \end{code}
 
 \subsection{Initial Algebras}
 
 Initial algebras can then be obtained by |\ x → ∃ i. mutri F (i , x)|
-for those |X|-indexed functors |F| which commute with |∃ i.| in the following sense.
+for those |X|-indexed functors |F| which weakly commute with |∃ i| in the following sense.
 
 Definition 1. Let |F| be an |X|-indexed functor, we say that |F|
-commutes with |∃ i.| if the canonical map
+weakly commutes with |∃ i| if the canonical map
 \begin{code}
 (x : X)  → (∃ i . F [trib A] (i , x))
          → F (\ x' → ∃ i. A (i , x')) x
 \end{code}
 is an isomomorphism for every |A|.
 
-Theorem 1. Let |F| be an |X|-indexed functor that commutes with |∃
-i.|, then |mu F x = ∃ i. mutri F (i , x)| is the initial algebra of
+Theorem 1. Let |F| be an |X|-indexed functor that weakly commutes with |∃
+i|, then |mu F x = ∃ i. mutri F (i , x)| is the initial algebra of
 |F|.
 
-Proof (Sketch). From |F| commuting with |∃ i.| at type |mutri F| we
+Proof (Sketch). From |F| weakly commuting with |∃ i| at type |mutri F| we
 obtain an indexed isomorphism |F (mu F) ≅ mu F| and so in particular
 an algebra |F (mu F) ⇒ F|, the morphism from any other algebra is
 obtained from the one for |mutri| and inherits his uniqueness since
@@ -819,7 +839,7 @@ As a corollary we obtain initial algebras for all finitely-branching polynomial 
 
 \subsection{(Guarded) Final Coalgebras}
 The above result can be dualized to obtain final coalgebras of
-|X|-indexed functors |F| that commute with |∀ i.|.
+|X|-indexed functors |F| that commute with |∀ i|.
 
 For each |X|-indexed functor |F| we obtain the final coalgebra of
 |F[trit -]| by
@@ -829,15 +849,15 @@ nutri F (i , x) = fix (\ i A x → F (\ y → ∀ (j < i) . A (j , x)) i x
 so that |nutri F = F[trit nutri F]|.
 
 Definition 2. Let |F| be an |X|-indexed functor, we say that |F|
-commutes with |∀ i.| if the canonical map
+weakly commutes with |∀ i| if the canonical map
 \begin{code}
 (x : X)  → F (\ x' → ∀ i. A (i , x')) x
          → (∀ i . F [trit A] (i , x))
 \end{code}
 is an isomomorphism for every |A|.
 
-Theorem 2. Let |F| be an |X|-indexed functor that commutes with |∀
-i.|, then |nu F x = ∃ i. nutri F (i , x)| is the final coalgebra of
+Theorem 2. Let |F| be an |X|-indexed functor that weakly commutes with |∀
+i|, then |nu F x = ∃ i. nutri F (i , x)| is the final coalgebra of
 |F|.
 
 \mytodo{dependent elimination for |nu F| ?}
@@ -869,9 +889,9 @@ some thought will be required.
 \section{A Parametric Model}
 \label{sec:model}
 
-The type isomorphisms involving |∀ i.| of Figure \ref{fig:isos}
+The type isomorphisms involving |∀ i| of Figure \ref{fig:isos}
 express the intuition that values are constructed in a |Time|
-invariant way, dually the ones involving |∃ i.| on the intuition that
+invariant way, dually the ones involving |∃ i| on the intuition that
 the only elimination principle for it is |Time| invariant.
 
 Since Reynolds \cite{Reynolds}, Relational Parametricity

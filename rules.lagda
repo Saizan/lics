@@ -2,6 +2,7 @@
 \begin{mathpar}
 \inferrule{|Γ ⊢ A : Type| \\ |Γ , x : A ⊢ B : Type|}{|Γ ⊢ (x : A) -> B : Type|}
 \and \inferrule{|Γ ⊢ A : Type| \\ |Γ , x : A ⊢ B : Type|}{|Γ ⊢ Σ (x : A). B : Type|}
+\and \inferrule{|Γ , i : Time ⊢ A : Type|}{|Γ ⊢ ∃ i . A : Type|}
 \and \inferrule{|Γ ⊢ A : Type| \\ |Γ ⊢ B : Type|}{|Γ ⊢ A + B : Type|}
 \and \inferrule{|Γ ⊢ A : Type| \\ |Γ ⊢ B : Type|}{|Γ ⊢ A × B : Type|}
 \and \inferrule{|X = ⊥ , ⊤ , Bool|}{|Γ ⊢ X : Type|}
@@ -35,7 +36,7 @@
 %% Fix
 \inferrule{|Γ , i : Time ⊢ A(i) : Type| \\
                 |Γ ⊢ f : ∀ i . (∀ j < i . A(j)) -> A(i)|}
-               {|fix f : ∀ i . A(i)|}
+               {|Γ ⊢ fix f : ∀ i . A(i)|}
 \and \inferrule{|f i (guardt u i) = u i|}{|u = fix f|}
 \end{mathpar}
 where
@@ -53,7 +54,7 @@ guardt f = λ i j -> f j
 %% Codes
 \inferrule{|Γ , i : Time ⊢ A : U|}{|Γ ⊢ ∀ i . A : U|}
 \and \inferrule{|Γ , i : Time ⊢ A : U|}{|Γ ⊢ ∃ i . A : U|}
-\and \inferrule{|Γ ⊢ t_0 : Time| \\ |Γ ⊢ t_0 : Time|}
+\and \inferrule{|Γ ⊢ t_0 : Time| \\ |Γ ⊢ t_1 : Time|}
                {|Γ ⊢ t_0 <= t_1 : U|}
 \and \inferrule{|Γ ⊢ A : U| \\ |Γ , x : A ⊢ B : U|}{|Γ ⊢ (x : A) -> B : U|}
 \and \inferrule{|Γ ⊢ A : U| \\ |Γ , x : A ⊢ B : U|}{|Γ ⊢ Σ (x : A). B : U|}
@@ -71,7 +72,7 @@ guardt f = λ i j -> f j
 \begin{align*}
 |∀ i . El A| &≅ |El A| & |i ∉ fv(A)| \\
 |∀ i . El (A(i))| &≅ |∀ i. ∀ (j < i). El (A(j))| & (|guardt| , |forcet|) \\
-|(∀ i. A) + (∀ i. A)| &≅ |∀ i. (A + B)| \\
+|(∀ i. A) + (∀ i. B)| &≅ |∀ i. (A + B)| \\
 |∀ i. Σ (x : El A). B| &≅ |Σ (x : El A). ∀ i . B| & |i ∉ A|\\
 \\
 |∃ i . El A| &≅ |El A| & |i ∉ fv(A)| \\
