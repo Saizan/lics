@@ -2,7 +2,6 @@
 \begin{mathpar}
 \inferrule{|Γ ⊢ A : Type| \\ |Γ , x : A ⊢ B : Type|}{|Γ ⊢ (x : A) -> B : Type|}
 \and \inferrule{|Γ ⊢ A : Type| \\ |Γ , x : A ⊢ B : Type|}{|Γ ⊢ Σ (x : A). B : Type|}
-\and \inferrule{|Γ , i : Time ⊢ A : Type|}{|Γ ⊢ ∃ i . A : Type|}
 \and \inferrule{|Γ ⊢ A : Type| \\ |Γ ⊢ B : Type|}{|Γ ⊢ A + B : Type|}
 \and \inferrule{|Γ ⊢ A : Type| \\ |Γ ⊢ B : Type|}{|Γ ⊢ A × B : Type|}
 \and \inferrule{|X = ⊥ , ⊤ , Bool|}{|Γ ⊢ X : Type|}
@@ -12,7 +11,7 @@
 \and \inferrule{|Γ ⊢ u : U|}{|Γ ⊢ El u : Type|}
 %%\mytodo{add terms? e.g. lambda/case/constructor/..}
 \end{mathpar}
-\caption{Dependent Type Theory with a Universe Γ ⊢ A : Type}
+\caption{Dependent Type Theory with a Universe}
 \label{fig:TT}
 \end{figure}
 

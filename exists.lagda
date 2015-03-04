@@ -1,7 +1,8 @@
 \begin{figure*}
 \begin{mathpar}
 %% Existential
-\inferrule{|Γ , i : Time ⊢ A(i) : Type | \\ |Γ ⊢ t : Time|
+\inferrule{|Γ , i : Time ⊢ A : Type|}{|Γ ⊢ ∃ i . A : Type|}
+\and \inferrule{|Γ , i : Time ⊢ A(i) : Type | \\ |Γ ⊢ t : Time|
                  \\ | Γ ⊢ e : A(t)|}
                 {|Γ ⊢ (pack t e) : ∃ i . A(i)|}
 \and \inferrule{|Γ , x : ∃ i . A ⊢ P(x) : U| \\ |Γ ⊢ e0 : ∃ i . A| \\ |Γ , i : Time , a : A ⊢ e1 : El (P (pack i a))|}

@@ -53,6 +53,7 @@
 %format not = "\Varid{not}"
 %format ==  = "{==}"
 %%format <=  = "{<=}"
+%%%format -> = "→"
 %format →   = "\mathrel{→}"
 %format sp  = "\mkern-2mu"
 %format : = "\!\!:\!"
@@ -64,7 +65,6 @@
 %format 5    = "5"
 %format 6    = "6"
 %format Set₁ = Set "_1"
-
 %format ∈     = "\mathrel{∈}"
 %format ·     = "\mathrel{·}"
 %format _∈_·_ = "{" _ "\mkern-5mu" ∈ "\mkern-5mu" _ "\mkern-3.4mu" · "\mkern-5mu" _ "}"
@@ -86,10 +86,10 @@
 %format stardepk = stardep "_{\kappa}"
 %format _star_ = _ "\!" star "\!" _
 %format pack (x) (y) = x "," y
-%format <*> = "\mathrel{<\!\!*\!\!>}"
-%format <*>! = "\mathrel{<\!\!*\!\!>}_i"
-%format <*>> = "\mathrel{<\!\!*\!\!>}^\Pi"
-%format <*>>! = "\mathrel{<\!\!*\!\!>}^\Pi_i"
+%format <*> = "\circledast"
+%format <*>! = <*> "_i"
+%format <*>> = <*> "^\Pi"
+%format <*>>! = <*> "^\Pi_i"
 %format uj = "^j"
 %format ui = "^i"
 %format guardb = guard "_\bot"
@@ -133,6 +133,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \input{macros.tex}
+\arraycolsep=1.4pt
 
 \begin{document}
 
@@ -303,11 +304,9 @@ We make the following contributions:
 The basic principle of Guarded Recusion is to keep track of the
 guardedness information in the types. Going back to the rose tree
 example we can give the data constructor |Node| a more precise type.
-
 \begin{code}
 Node : A -> (List (trib RoseTree A)) → RoseTree A
 \end{code}
-
 The type constructor |trib| makes explicit that the subtrees are
 built, and can be consumed, in fewer time/steps than the resulting
 tree. \mytodo{is time still a good metaphor? In the end this is all
@@ -319,14 +318,11 @@ Once we've done that we can write |mapRT| by reusing |map|.
 mapRT : (A → B) → RoseTree A → RoseTree B
 mapRT f (Node a ts) = Node a (map (\ t -> mapRT ut f t) ts)
 \end{code}
-
 Here the call |mapRT ut| stands for an implicit use of a guarded
-fixpoint combinator we will introduce later \ref{fixb}, so it gets
+fixpoint combinator we will introduce in Section \ref{fixb}, so it gets
 type |(A -> B) -> trib RoseTree A → trib RoseTree B|, i.e. it can
 only handle smaller trees but also produces smaller trees, so the
-definition typechecks.
-
-If we tried to write a circular definition like
+definition is well-typed. If we tried to write a circular definition like
 \begin{code}
 mapRT f ts = mapRT f ts
 \end{code}
@@ -341,25 +337,22 @@ Often we will leave the clocks implicit at the level of terms, however where app
 \begin{code}
 (pack) : ∀ k . A hk -> ∃ k . A hk
 \end{code}
-
 The proper type of |Node| will then have a clock indexing the result
-type |RoseTree uk|, which is then the type of trees bounded in size by
+type |RoseTree uk|, which is the type of trees bounded in size by
 the clock |k|.
 \begin{code}
 Node : ∀ k . A → List (tribk RoseTree uk A) → RoseTree uk A
 \end{code}
 
-As part of the interface of |tribk| we have the operation |extract|
-
+As part of the interface of |tribk| we have the operation
 \begin{code}
 extract : ∀ k . tribk A -> A
 \end{code}
-
 which we overload for those |A| which mention |k| only in a strictly
 positive position, in the model (Section \ref{sec:model}) it will correspond to monotonicity
-with regard to time. Two particular cases are when |k| is
-free in |A| and when |A = tribk B|.
-
+with regard to time. Two particular cases are when |k| is not
+free in |A| and when |A = tribk B| for any |B|.
+\mytodo{only mention extract for k free in A, you never use anything else}
 %% Another primitive operation is |guardb|.
 %% \begin{code}
 %% guardb : (∃ k . A) -> ∃ k . tribk A
@@ -377,10 +370,11 @@ free in |A| and when |A = tribk B|.
 
 %% unfold example.
 \mytodo{subsection?}
+
 There are interesting uses of |tribk| even when not directly
 associated with a datatype, an example of this is the |unfold|
-function for |List|.
-
+function for |List|. We use |⊤| for the type with one element, and |+|
+for the sum type with constructors |inl| and |inr|.
 \begin{code}
 unfold :  (∀ k . S hk -> ⊤ + (A × tribk S hk)) →
           ∀ k . S hk → List A
@@ -388,11 +382,10 @@ unfold f s = case f s of
                inl _          -> []
                inr (a , s')  -> a ∷ extract (unfold ut f s')
 \end{code}
-\mytodo{Using the notation |S hk| makes explicit where |k| can appear, however it gets heavyweight quite fast later. What to do?}
 By restricting the type of the function |f| we are trying to unfold,
 so that it always has to return a smaller next state |s'|, we can
 guarantee termination. \mytodo{challenging for syntactic check because
-s' not subterm of s} The use of |extract| is justified if we assume |A| doesn't mention |k|.
+s' not subterm of s} The use of |extract| is justified if we assume that |A| doesn't mention |k|.
 
 Using |unfold| and a type of bounded natural numbers we can define the
 function |downfrom|, which returns a list counting down to $1$.
@@ -416,7 +409,7 @@ them synchronized with the clock |k| given to the function we unfold.
 \label{fixb}
 
 So far we have seen directly recursive definitions, here we show the
-fixed point combinator they are based on and how that is derived from
+fixed point combinator they are based on and how it is derived from
 a more general one.
 
 \begin{code}
@@ -453,13 +446,12 @@ _star_ : ∀ k . tritk (A hk -> B hk) -> tribk A hk -> tribk B hk
 
 fixb f = fix (λ k r . f k (λ x . r stark x))
 \end{code}
-
-With a suitable |Stream uk| type we can then define |ones|.
+With a suitable type |Stream uk| we can then define |ones|.
 
 \begin{code}
-cons : ∀ k . tritk Stream A uk -> Stream A uk
+cons : ∀ k . tritk Stream uk A  -> Stream uk A
 
-ones : ∀ k . Stream Nat uk
+ones : ∀ k . Stream uk Nat
 ones = fix (λ k xs . cons 1 xs)
 \end{code}
 
@@ -471,8 +463,7 @@ supported in general, e.g. not for |A = tribk B|, however we do still
 support |<*>|.
 
 \begin{code}
-<*> :  ∀ k . tritk (A hk -> B hk) ->
-       tritk A hk -> tritk B hk
+<*> :  ∀ k . tritk (A hk -> B hk) -> tritk A hk -> tritk B hk
 \end{code}
 
 \subsection{Inductive types}
@@ -485,19 +476,20 @@ existential quantification of the guarded variant, e.g. |∃ k . Nat
 uk|.
 
 For now we will assume type-level recursion, in Section
-\ref{sec:induction} we will reduce it to uses |fix| on a universe of
+\ref{sec:induction} we will reduce it to uses of |fix| on a universe of
 types and construct initial algebras for suitable functors.
 
 Here we show the natural numbers as the simplest example. The guarded
-version |Nat uk| is defined through a sum type, to encode the two
-constructors, but inserting |tribk| in front of the recursive
-occurrence.
+version |Nat uk| is defined using a sum type, to encode the two
+constructors, and inserting |tribk| in front of the recursive
+occurrence of |Nat uk|.
 
 \begin{code}
-Nat uk = ⊤ + tribk Nat uk
-
-Zero uk = inl tt
-Suc  uk = λ n . inr n
+Nat uk   = ⊤ + tribk Nat uk
+Zero uk : Nat uk
+Zero uk  = inl tt
+Suc uk : Nat uk -> Nat uk
+Suc uk   = λ n . inr n
 \end{code}
 
 Now we can bind the clock variable with an existential |Nat = ∃ k
@@ -535,44 +527,50 @@ conclude they are equal.
 %% is to be parametric limits and colimits, as in \cite{parametric-limit}.
 
 Once we scale up to a dependently typed language we will also be able
-to implement an induction principle in terms of |fix|. Before that
-however we will switch to a more suitable notation and describe our
-calculus.
+to implement an induction principle in terms of |fix| in Section
+\ref{sec:induction}. However before that we will describe our
+calculus, where we directly manipulate time values instead of clocks
+to gain expressivity.
 
 \mytodo{Maybe have an introduction subsection about the model too?}
 \section{From Clocks to Time}
 \label{sec:lang}
 The notation we have used in the examples so far is closely modeled on
 the one used in \cite{BobConor} and \cite{Rasmus}. In particular
-clocks are a convenient abstraction over explicitly handling |Time|,
-since we can use the same clock to refer to different amounts |Time|
+clocks are a convenient abstraction over explicitly handling time values,
+since we can use the same clock to refer to different amounts of type
 depending on the context.
 
-We can think of clock variables as indexes in an environment of |Time|
-values. This environment however is not passed untouched to every
-sub-expression, or simply added to by binders, it also gets mutated by
+We can think of clock variables as indexes into an environment of
+values of type |Time|. This environment however is not passed untouched to every
+sub-expression, or simply added to by binders, it also gets updated at the index |k| by
 the modalities |tritk| and |tribk| for the scope of their
-arguments \mytodo{does this correspond to dynamic scope?}. A good
-analogy is Haskell's Reader monad: a clock variable is a lookup in the
-environment, while |tritk| and |tribk| are implemented with |local|.
+arguments \mytodo{does this correspond to dynamic scope?}.
+So the same clock variable represents different time values in different parts of a type expression.
+
+%%A good
+%%analogy is Haskell's |Reader| monad: a clock variable looks up the current value in the
+%%environment, while |tritk| and |tribk| locally override it with a smaller one.
 
 To clarify the flow of |Time| we adopt a syntax inspired by Sized
-Types \cite{Andreas} instead, it will also offer more flexibility in
-the dependent case. In fact the first step is to add to a dependently
-typed language (Figure \ref{fig:TT}) a new type |Time| together with inequality
+Types \cite{Andreas} instead. It will also offer more flexibility in
+the dependent case. In fact the first step is to add to the dependently
+typed language of Figure \ref{fig:TT} a new type |Time|, together with inequality
 |(i j : Time) ⊢ i ≤ j| and zero |0 : Time| and successor |↑ : Time -> Time|
 (Figure \ref{fig:Time}).
 
 Universal quantification over |Time| is simply done with a dependent
 function type, and the |tritk| modality is a corresponding bounded
-version. As a result a type like |∀ k . tritk Nat uk| becomes |(i :
+version. As a result the type |∀ k . tritk Nat uk| becomes |(i :
 Time) -> (j : Time) -> ↑ j ≤ i -> Nat uj|, where the smaller time |j|
 is explicitly mentioned and passed as the time parameter of the
 guarded natural numbers type.
 
-In the following we use the shorthand |∀ j < i . A| in place of
-|(j : Time) -> ↑ j ≤ i -> A|, and |λ j| in place of |λ j (p : ↑ j ≤ i)| and |∀ i
-. A| in place of |(i : Time) -> A|.
+In the following we use the shorthand |∀ i . A| in place of |(i :
+Time) -> A| and |∀ j < i . A| in place of |(j : Time) -> ↑ j ≤ i ->
+A|, and so we also omit the inequality proof in abstractions and
+applications, writing |λ j| in place of |λ j (p : ↑ j ≤ i)| and |f j|
+in place of |f j p|.
 
 \mytodo{is there a more standard notation for $\Pi$? should I just
 explain Agda's one?}
@@ -589,7 +587,7 @@ f <*>! x = λ j -> f j (x j)
 
 With this formulation it is also easy to see how to generalize |<*>|
 to the dependent case since we can get hold of |j| and pass that to
-|x| to obtain valid argument for the dependent type |B|:
+|x| to obtain a valid argument for the dependent type |B|:
 \mytodo{maybe i don't need to give it a different name since it is strictly more general?}
 \begin{code}
 (<*>>) :  ∀ i . (∀ j < i . (x : A) -> B x)
@@ -597,27 +595,28 @@ to the dependent case since we can get hold of |j| and pass that to
 f <*>>! x = λ j -> f j (x j)
 \end{code}
 
-The existential quantification |∃ i , A| (Figure \ref{fig:exists}) for |Time|
-however has to be distinct from a plain |Σ| type since allowing an
+However the existential quantification |∃ i. A| for |Time|, shown in Figure \ref{fig:exists},
+has to be distinct from a plain |Σ| type because allowing an
 unrestricted first projection would let us observe the specific |Time|
 contained. The difference between |∃ i . A| and |Σ (i : Time). A| is
-then that the former can only be eliminated into the universe |U|
+that the former can only be eliminated into the universe |U|
 which conspicuosly lacks a code for |Time| itself (Figure \ref{fig:codes}).
-\mytodo{We could have a Time code in U with El Time = ⊤, but that might look weird}
 In the model we will see that |∃| is exactly a
 "truncation" of the corresponding |Σ| to the universe |U|
 \ref{sec:model}.
 \mytodo{give some intuition for the Universe as the one of "discrete" types, as opposed to Time and U itself having higher structure?}
 We also add a form of $\eta$ expansion for |∃ i|, which will be
-necessary to ensure the proper computation behaviour for induction.
+necessary to ensure the proper computational behaviour for induction.
 
 Dually to |tritk| we have that |tribk| corresponds to a bounded |∃|
 and we allow similar shorthands |∃ (j < i). A| for |∃ j . ↑ j ≤ i ×
-A| and |(pack j a)| for |(pack j (jlti , a))|.
+A| and |(pack j a)| for |(pack j (p , a))|.
 
-As an example we show the implementation of |star|, where the presence
-of |El| on the return type ensures that the pattern match on |(pack j
-x)| is justified:
+As an example we show the implementation of |star|, where we can pattern match on |(pack j
+x)| because the return type belongs to the universe |U|:
+%%As an example we show the implementation of |star|, where the presence
+%%of |El| on the return type ensures that we can the pattern match on |(pack j
+%%x)|:
 \begin{code}
 (star) :  ∀ i . (∀ j < i . A -> El B)
           ->    (∃ j < i . A) -> El (∃ j < i . B)
@@ -654,7 +653,7 @@ can be implemented for dependent functions:
 
 \begin{align*}
 |∀ i. A × B |\, &|≅|\, |∀ i. A × ∀ i. B| \\
-|∀ i. (x : A) → B|\, &|≅|\, |(x : A) → ∀ i . B| & |i ∉ A|\\
+|∀ i. (x : A) → B|\, &|≅|\, |(x : A) → ∀ i . B| & |i ∉ fv(A)|\\
 |∀ i. ∀ j. A|\, &|≅|\, |∀ j. ∀ i. A|\\
 \end{align*}
 
@@ -694,7 +693,7 @@ precomposition and define |Fixb| through |fix|, giving us the desired
 property.
 
 \begin{code}
-Fixb = fix (λ i X -> F (wtribi X))
+Fixb = fix (λ i X . F (wtribi X))
 \end{code}
 
 In the same way we define |Fixt| by |wtriti|:
@@ -709,7 +708,7 @@ show induction for the natural numbers.
 
 First we redefine |Nat|, and show the definition of its constructors |Zero| and |Suc|:
 \begin{code}
-Nat = El (∃ i. Fixb (\ X → ⊤ + X))
+Nat = El (∃ i. Fixb (\ X . ⊤ + X))
 
 Zero : Nat
 Zero = (pack 0 (inl tt))
@@ -924,12 +923,13 @@ $\Gamma$ of \CxtF is best thought of as a triple $(\Gamma_O, \Gamma_R,
 \Gamma_{refl})$ where $\Gamma_O$ is a set of objects, $\Gamma_R$ is a binary
 relation over $\Gamma_O$ and $\Gamma_{refl}$ is a function witnessing the
 reflexivity of $\Gamma_R$.
-\begin{gather*}
-\Gamma_O : Set \\
-\Gamma_R : \Gamma_O × \Gamma_O \to Set \\
-\Gamma_{refl} : \forall \gamma \in \Gamma_O.\; \Gamma_R(\gamma,\gamma)
-\end{gather*}
-
+\[
+\begin{array}{l l}
+\Gamma_O & : Set \\
+\Gamma_R & : \Gamma_O × \Gamma_O \to Set \\
+\Gamma_{refl} & : \forall \gamma \in \Gamma_O.\; \Gamma_R(\gamma,\gamma)\\
+\end{array}
+\]
 Morphisms $f : \Gamma \to \Delta$ are then a pair of functions $f_o$
 and $f_r$ which commute with reflexivity:
 \begin{gather*}
@@ -938,7 +938,6 @@ f_r : \forall \gamma_0, \gamma_1 \in \Gamma.\; \Gamma_R(\gamma_0,\gamma_1) \to \
 \mbox{such that}\\
 \forall \gamma \in \Gamma_O.\; f_r (\Gamma_{refl}(\gamma)) = \Delta_{refl} (f_o(\gamma))
 \end{gather*}
-
 These morphisms assume the role of substitutions, mapping environments
 of the context $\Gamma$ into environments of $\Delta$. We use the
 notations $A\{f\}$ and $M\{f\}$ to apply the substitution $f$ to the type
@@ -965,10 +964,10 @@ so an element of $Ty(\epsilon)$ corresponds to an object of \CxtF.
 
 We can also extend a context $\Gamma$ by a type $A \in \TyF \Gamma$ to
 obtain another context $\Gamma.A$ by pairing up each component, so
-that we have a map $fst : \Gamma.A \to \Gamma$ which projects out the
+that we have a map $\tfst : \Gamma.A \to \Gamma$ which projects out the
 first component and functions as a weakening substitution.
 
-Finally an element $M$ of $\TmF \Gamma A$ correponds to a map $\Gamma \to \Gamma.A$ such that $fst \circ M = id_\Gamma$:
+Finally an element $M$ of $\TmF \Gamma A$ correponds to a map $\Gamma \to \Gamma.A$ such that $\tfst \circ M = id_\Gamma$:
 \begin{gather*}
 M_o : \forall \gamma \in \Gamma_O, \; A_O(\gamma)\\
 M_r : \forall \gamma_0, \gamma_1 \in \Gamma_O, \; \forall \gamma_r \in \Gamma_R(\gamma_0,\gamma_1), \; A_R(\gamma_r,M_o(\gamma_0),M_o(\gamma_1)) \\
@@ -983,32 +982,33 @@ theorems from Wadler \cite{Wadler}, Atkey et. al define a universe $U
 \in \TyF \Gamma$ to connect the relations of the reflexive graphs to
 the equality of their set of objects.
 
-In particular for each $A \in \TmF \Gamma U$ we get a type $El A \in
-\TyF \Gamma$ such that for all we have that $(El A)_O$ is a family of
-small sets, $(El A)_R$ is a family of proof irrelevant relations, and
-for all $\gamma \in \Gamma_O$ we have that $(El A)_R(\Gamma_{refl}(\gamma))$
-is the equality relation of $(El A)_O(\gamma)$.
+In particular for each $A \in \TmF \Gamma U$ we get a type $\El A \in
+\TyF \Gamma$ such that for all we have that $(\El A)_O$ is a family of
+small sets, $(\El A)_R$ is a family of proof irrelevant relations, and
+for all $\gamma \in \Gamma_O$ we have that $(\El A)_R(\Gamma_{refl}(\gamma))$
+is the equality relation of $(\El A)_O(\gamma)$.
 Where the latter two requirements are to be considered up to isomorphism.
 
 One main feature of $U$ is exemplified by considering a term $M \in
-\TmF{\Gamma.A}{(El B)\{fst\}}$ where $A \in \TyF \Gamma$ and $B \in
+\TmF{\Gamma.A}{(\El B)\{\tfst\}}$ where $A \in \TyF \Gamma$ and $B \in
 \TmF \Gamma U$, i.e. where the type of the result is in the universe
 and doesn't depend on $A$.
-Unfolding the application of $fst$ and unpacking the environment for $\Gamma.A$ we get the following for the components $M$,
+Unfolding the application of $\tfst$ and unpacking the environment for $\Gamma.A$ we get the following for the components $M$,
 where the condition of commuting with reflexivity is between two elements of
 a proof-irrelevant relation, so can be omitted.
-\begin{gather*}
-M_o : \forall \gamma \in \Gamma_O, \; \forall a \in A_O(\gamma), \; (El B)_O(\gamma) \\
-M_r : \forall \gamma_0, \gamma_1 \in \Gamma_O, \;
+\[
+\begin{array}{l c l}
+M_o &:& \forall \gamma \in \Gamma_O, \; \forall a \in A_O(\gamma), \; (\El B)_O(\gamma) \\
+M_r &:& \forall \gamma_0, \gamma_1 \in \Gamma_O, \;
       \forall \gamma_r \in \Gamma_R(\gamma_0,\gamma_1), \; \\
-      \forall a_0 \in A_O(\gamma_0), a_1 \in A_O(\gamma_1), \;
+      & &\forall a_0 \in A_O(\gamma_0), a_1 \in A_O(\gamma_1), \;
       \forall a_r \in \A_R(\gamma_r,a_0,a_1), \; \\
-        (El B)_R(\gamma_r, M_o(\gamma_0,a_0), M_o(\gamma_1,a_1))
-\end{gather*}
-
-We see that the result of $M_r$ doesn't mention $a_r$ because $El B$ doesn't depend on $A$, moreover if
-we specialize $\gamma_r$ to $\Gamma_{refl}(\gamma)$ we get $(El
-B)_R(\Gamma_{refl}{\gamma}, M_o(\gamma,a_0), M_o(\gamma,a_1))$, which we
+       & &(\El B)_R(\gamma_r, M_o(\gamma_0,a_0), M_o(\gamma_1,a_1))\\
+\end{array}
+\]
+We see that the result of $M_r$ doesn't mention $a_r$ because $\El B$ doesn't depend on $A$, moreover if
+we specialize $\gamma_r$ to $\Gamma_{refl}(\gamma)$ we get $(\El
+B)_R(\Gamma_{refl}(\gamma), M_o(\gamma,a_0), M_o(\gamma,a_1))$, which we
 know to be isomorphic to $M_o(\gamma,a_0) = M_o(\gamma,a_1)$ so we can conclude
 the following:
 \begin{gather*}
@@ -1022,7 +1022,7 @@ two related $a_i$ as being equal, since it returns the same result.
 
 The universe $U$ is shown to contain product and sum types, natural
 numbers, to be closed under $\Sigma$ types and to contain $\Pi (x :
-A). El (B x)$ for any small type $A$.
+A). \El (B x)$ for any small type $A$.
 \mytodo{too imprecise? also assuming small sets are closed over similar stuff}
 
 %% Another important feature of $U$ corresponds to Reynolds' identity
@@ -1050,13 +1050,13 @@ The fixpoint operator |fix| and its uniqueness are then a simple matter of
 well-founded induction on the natural numbers.
 
 From the observation above about terms of a non dependent type we
-already get that a term $M \in \TmF {\Gamma.\Time} {(El B)\{fst\}}$ is
+already get that a term $M \in \TmF {\Gamma.\Time} {(\El B)\{\tfst\}}$ is
 going to produce the same result no matter what natural number it gets
-from the environment, since they are all related, which justifies the isomorphism $∀ i. El
-B ≅ El B$ of our language.\mytodo{mention that Pi types are naturally isomorphic to open terms?}
+from the environment, since they are all related, which justifies the isomorphism $∀ i. \El
+B ≅ \El B$ of our language.\mytodo{mention that Pi types are naturally isomorphic to open terms?}
 
 The relation between times |i ≤ j| is then intepreted by $\Le : \TyF
-(\Time.\Time\{fst\})$, which also fits in $U$ since it has no
+(\Time.\Time\{\tfst\})$, which also fits in $U$ since it has no
 interesting inhabitants.
 \begin{gather*}
 \Le_O(n , m) = \{ * \mid n \le m \} \\
@@ -1085,21 +1085,26 @@ Moreover we define $\LiftF_{A,B}(R)$ to lift a relation $R : A_O \to
 B_O \to Set$ to a relation $A_O/A_R \to B_O/B_R \to Set$, so that we have
 a function $\liftF_R : \forall a, b. \, R(a,b) →
 \LiftF_{(A,B)}(R)([a],[b])$.
-\mytodo{spacing/alignment, do i need to use array?}
 \begin{gather*}
-\LiftF : \forall A, B \in Obj(\CxtF), \forall (R : A_O \to B_O \to Set),\\ A_O/A_R \to B_O/B_R \to Set \\
+\begin{array}{l c l}
+\LiftF &:& \forall A, B \in Obj(\CxtF), \forall (R : A_O \to B_O \to Set),\\
+       & & A_O/A_R \to B_O/B_R \to Set \\
+\end{array}\\
 \LiftF_{(A,B)}(R : A_O \to B_O \to Set)([ a ],[ b ])\\
-  = \{ (a',a'\sim a,b',b'\sim b,r) \mid a' \in A_O, a'\sim a \in A_R^*(a,a'),\\ b' \in B_O, b\sim b' \in B_R^*(b,b'),\\ r \in R(a',b') \}/(λ x y. {*})
+\begin{array}{l c l c l}
+  &=& \{ (a',\tilde{a} ,b',\tilde{b},r) &\mid& a' \in A_O, \tilde{a} \in A_R^*(a,a'),\\
+  & & & &b' \in B_O, \tilde{b} \in B_R^*(b,b'),\\
+  & & & &r \in R(a',b') \}/\top\\
+\end{array}
 %% \LiftF_{(A,B)}(R : A_O \to B_O \to Set)(qa,qb) = \{ * \mid ∃ a. a \in [qa], ∃ b. b \in [qb], R(a,b) \} \\
 %% \mbox{alternatively (by definition on the representatives)}\\
 %% \LiftF_{(A,B)}(R : A_O \to B_O \to Set)([ a ],[ b ]) = \{ * \mid ∃ a'. A_R^*(a,a'), ∃ b'. B_R^*(b,b'), R(a',b') \} \\
 \end{gather*}
-\mytodo{i'm really bad at expressing myself in set theory, so these definition might look weird!}
 Picking the representatives $a$ and $b$ is justified because we
 produce loically equivalent relations for related elements.
 We have that $\LiftF_{A,B}(R)$ is proof irrelevant by construction
-since we define it as a quotient with the total relation (λ x y. {*}),
-moreover $\LiftF_{A,A}(A_R)(q_0,q_1)$ is logically equivalent to $q_0
+since we define it as a quotient with the total relation which we name $\top$,
+moreover $\LiftF_{(A,A)}(A_R)(q_0,q_1)$ is logically equivalent to $q_0
 =_{A_O/A_R} q_1$.
 
 \mytodo{prove? could be lifted from Uday Reddy}
@@ -1118,7 +1123,7 @@ but $U_{refl}$ simply projects out the relation given as the second
 component of the tuple, so both sides reduce to
 $\LiftF(A_r(\Gamma_{refl}(\gamma)))$ and we are done.
 
-Remark, for any $A \in \TmF \Gamma U$, the types $El A$ and $El (\Tr
+Remark, for any $A \in \TmF \Gamma U$, the types $\El A$ and $\El (\Tr
 A)$ are equivalent. In fact $A_r(\Gamma_{refl}(\gamma)$ is already
 equivalent to equality for $A_O(\gamma)$ so the quotient
 $A_O(\gamma)/A_r(\Gamma_{refl}(\gamma))$ is equivalent to
@@ -1128,51 +1133,52 @@ equivalent to $A_r(\gamma_r)$.
 The next step is to define an introduction and an elimination for $\Tr
 A$; the former sends an element of $A$ to its equivalence class:
 \begin{gather*}
-\tr : \TmF {A} {El (\Tr A)}  \\
+\tr : \TmF {A} {\El (\Tr A)}  \\
 \tr_o(a) = [ a ]\\
 \tr_r(a_r) = \liftF(a_r)
 \end{gather*}
 We then have dependent elimination of $\Tr A$ into other types $B \in
-\TmF {\Gamma.El (\Tr A)} {U}$ that live in the universe.
-Given a $t \in \TmF {\Gamma.A} {El B\{fst,\tr\}}$ we define $\elim$:
+\TmF {\Gamma.\El (\Tr A)} {U}$ that live in the universe.
+Given a $t \in \TmF {\Gamma.A} {\El B\{\tfst,\tr\}}$ we define $\elim$:
 \begin{gather*}
-\elim : \TmF {\Gamma.El (\Tr A)} {El B}\\
+\elim : \TmF {\Gamma.\El (\Tr A)} {\El B}\\
 \elim_o(\gamma,[ a ]) = t_o(\gamma,a)\\
-\elim_r(\gamma_r, [ (a',a'\sim a,b',b'\sim b,r) ]) = t_r(\gamma_r,r)
+\elim_r(\gamma_r, [ (a',\tilde{a},b',\tilde{b},r) ]) = t_r(\gamma_r,r)
 \end{gather*}
 This definition begs the questions of why we are allowed to work with
 the representatives of these quotients and why $t_r(\gamma_r,r)$ is
 even a member of the expected relation, both of these problems are
 solved by the discreteness of $B$.
 First we unfold the type of $t_r$,
-\begin{gather*}
-t_r : \forall \gamma_0, \gamma_1 \in \Gamma_O, \; \\
-      \gamma_r \in \Gamma_R(\gamma_1,\Gamma_2), \;\\
-      \forall a_0 \in A_O(\gamma_0), a_1 \in A_O(\gamma_1), a_r \in A_R(\gamma_r,a_0,a_1),\; \\
-      (El B)_R((\gamma_r,\liftF(a_r)), t_o(\gamma_0,a0), t_o(\gamma_1,a_1))
-\end{gather*}
+\[
+\begin{array}{l c l}
+t_r &:& \forall \gamma_0, \gamma_1 \in \Gamma_O, \; \gamma_r \in \Gamma_R(\gamma_1,\Gamma_2), \;\\
+    & & \forall a_0 \in A_O(\gamma_0), a_1 \in A_O(\gamma_1), a_r \in A_R(\gamma_r,a_0,a_1),\; \\
+    & & (\El B)_R((\gamma_r,\liftF(a_r)), t_o(\gamma_0,a0), t_o(\gamma_1,a_1))
+\end{array}
+\]
 and note that in particular for any $\gamma \in \Gamma_O$ we can take
 $\gamma_r = \Gamma_{refl}(\gamma)$ and obtain an equality
 $t_o(\gamma,a0) = t_o(\gamma,a_1)$ for any two related $a_0, a_1 \in
 A_R(\gamma)$. This follows from proof-irrelevance of $(\Tr A)_R$,
 giving us $\liftF(a_r) = (\Tr A)_{refl}([a])$, and discreteness of
-$(El B)$.
+$(\El B)$.
 
 To justify the definition of $\elim_o$ we have to show that for two
-$a_0, a_1 \in A_O(\gamma)$ related by $a_r :
+$a_0, a_1 \in A_O(\gamma)$ related by $a_r \in
 A_R(\Gamma_{refl}(\gamma),a_0,a_1)$, we have $t_o(\gamma,a_0) =
 t_o(\gamma,a_1)$; but this follows directly from the observation about $t_r$
 
 In the case of $\elim_r$ we already know that we will produce the same
 result for different representatives, because of proof-irrelevance,
-but it is less obvious that it belongs in $(El B)_R(\gamma_r,[
-(a',a'\sim a,b',b'\sim b,r) ]), t_o(\gamma_0,a), t_o(\gamma_1,b))$. We know
-that $t_r(\gamma_r,r) \in (El B)_R(\gamma_r,\liftF(r)),
+but it is less obvious that it belongs in $(\El B)_R(\gamma_r,[
+(a',\tilde{a},b',\tilde{b},r) ]), t_o(\gamma_0,a), t_o(\gamma_1,b))$. We know
+that $t_r(\gamma_r,r) \in (\El B)_R(\gamma_r,\liftF(r)),
 t_o(\gamma_0,a'), t_o(\gamma_1,b'))$, and from the observation about
 $t_r$ we know that $t_o(\gamma_0,a) = t_o(\gamma_0,a')$ and
 $t_o(\gamma_0,b) = t_o(\gamma_0,b')$, so also have $t_r(\gamma_r,r)
-\in (El B)_R(\gamma_r,\liftF(r)), t_o(\gamma_0,a), t_o(\gamma_1,b))$,
-and since $\liftF(r) = [ (a',a'\sim a,b',b'\sim b,r) ]$ by proof-irrelevance,
+\in (\El B)_R(\gamma_r,\liftF(r)), t_o(\gamma_0,a), t_o(\gamma_1,b))$,
+and since $\liftF(r) = [ (a',\tilde{a},b',\tilde{b},r) ]$ by proof-irrelevance,
 we obtain the result we wanted.
 
 
