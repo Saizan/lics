@@ -78,24 +78,27 @@
 %format uk = "\!^\kappa"
 %format k = "\kappa"
 %format k' = "\kappa^\prime"
-%format fixb = fix "_\bot"
+%format fixb = fix "_\blacklozenge"
 %format star = "\star"
 %format stari = "\star_i"
+%format starj = "\star_j"
 %format stark = "\star_\kappa"
 %format stardep = "\star^{\Pi}"
 %format stardepk = stardep "_{\kappa}"
 %format _star_ = _ "\!" star "\!" _
 %format pack (x) (y) = x "," y
 %format <*> = "\circledast"
+%format ast = <*>
+%format merge = "\oplus"
 %format <*>! = <*> "_i"
 %format <*>> = <*> "^\Pi"
 %format <*>>! = <*> "^\Pi_i"
 %format uj = "^j"
 %format ui = "^i"
-%format guardb = guard "_\bot"
-%format forceb = force "_\bot"
-%format guardt = guard "_\top"
-%format forcet = force "_\top"
+%format guardb = guard "_\blacklozenge"
+%format forceb = force "_\blacklozenge"
+%format guardt = guard "_\blacksquare"
+%format forcet = force "_\blacksquare"
 %%format hk = "\!\![\kappa]"
 %format hk = "\!"
 %%format <= = "\le"
@@ -105,10 +108,10 @@
 %format e0 = e "_0"
 %format e1 = e "_1"
 %format e2 = e "_2"
-%format Fixb = Fix "_\bot"
-%format Fixt = Fix "_\top"
-%format wtribi = "\trib^i"
-%format wtriti = "\trit^i"
+%format Fixb = Fix "_\blacklozenge"
+%format Fixt = Fix "_\blacksquare"
+%format wtribi = "\lozenge^i"
+%format wtriti = "\square^i"
 %format mutri = "\mu^\trib"
 %format mu = "\mu"
 %format nutri = "\nu^\trit"
@@ -345,9 +348,11 @@ Node : ∀ k . A → List (tribk RoseTree uk A) → RoseTree uk A
 \end{code}
 
 As part of the interface of |tribk| we have the operation
+\[
 \begin{array}{l r}
 |extract : ∀ k . tribk A -> A| & |k ∉ fv(A)|
 \end{array}
+\]
 that allows to get values out of the |tribk| modality as long as their
 type is independent of the clock |k|.
 In the language of Section \ref{sec:lang} such an operation will be
@@ -692,12 +697,10 @@ that |Fixb F i = F (∃ (j < i). Fixb F j)|.
 The first step is to recognize that |∃ (j < i).| can take an element
 of |∀ (j < i). U| as input rather than |U| or |Time -> U|, defining
 the combinator |wtribi|.
-
 \begin{code}
 wtribi : (∀ (j < i). U) -> U
 wtribi X = ∃ (j < i). X j
 \end{code}
-
 Using the time analogy for intuition, in a case where we have no time
 left, so there's no |j < i|, we already know that |∃ (j < i). A|
 is equivalent to |⊥| without having to know what |A| is, only if we
@@ -706,7 +709,6 @@ actually have time to spare we will look into it.
 Given |wtribi| we can turn |F : U -> U| into |∀ i . (∀ (j < i). U) -> U| by
 precomposition and define |Fixb| through |fix|, giving us the desired
 property.
-
 \begin{code}
 Fixb = fix (λ i X . F (wtribi X))
 \end{code}
@@ -714,7 +716,7 @@ Fixb = fix (λ i X . F (wtribi X))
 In the same way we define |Fixt| by |wtriti|:
 \begin{code}
 wtriti : (∀ (j < i). U) -> U
-wtriti X = ∃ (j < i). X j
+wtriti X = ∀ (j < i). X j
 \end{code}
 
 \subsection{Induction on Nat}
@@ -723,7 +725,7 @@ show induction for the natural numbers.
 
 First we redefine |Nat|, and show the definition of its constructors |Zero| and |Suc|:
 \begin{code}
-Nat = El (∃ i. Fixb (\ X . ⊤ + X))
+Nat = El (∃ i. Fixb (\ X . ⊤ + X) i)
 
 Zero : Nat
 Zero = (pack 0 (inl tt))
@@ -876,16 +878,45 @@ i|, then |nu F x = ∃ i. nutri F (i , x)| is the final coalgebra of
 
 \mytodo{dependent elimination for |nu F| ?}
 \subsection{Mixed Recursion-Corecursion}
-\mytodo{catalan numbers example?}
+Here we show with an example that the language can handle cases of
+mixed recursion-corecursion by nested uses of |fix|.
 
-\mytodo{when comparing with guarded recursive types, say that to
-internalize the functoriality "sized types" style you'd need directed
-type theory, which is a good technical reason to use clocks instead}
+From \cite{foundational} we take the example of a function
+\begin{code}
+cat : Nat -> Stream Nat
+\end{code}
+such that |cat 1| is the stream of Catalan numbers: $C_1,C_2,C_3,
+\ldots$ where $C_n = \frac{1}{1 + n}\binom{2n}{n}$.
 
-%% intro forms, suc : ∃ k. Nat^k -> ∃ k. Nat^k, elimination existential
-%% - mixed recursion
-%% - initial algebras /
+We define |Stream A| as the final coalgebra of |A ×|, with |Stream ui
+A| as the guarded version.
+\begin{code}
+Stream ui A = El (Fixt (\ X . A × X) i)
+Stream A = ∀ i . Stream ui A
+\end{code}
+We also assume we have a function
+\begin{code}
+merge : ∀ i . Stream ui Nat -> Stream ui Nat -> Stream ui Nat
+\end{code}
+which sums the elements of two streams pointwise.
 
+Given the above we nest two calls to |fix|, the outer one used for the
+corecursive calls, while the inner one for the recursive one. The
+order of the nesting makes so |catt| can accept an arbitrary natural
+number as argument, while |catb| only one strictly bounded by |j|.
+Conversely |catb| produces a stream bounded by |i| while |catt| only a
+stream at a smaller bound.
+\begin{code}
+cat' : ∀ i → Nat → Stream ui Nat
+cat' = fix (λ i catt . uncurry (fix (\ j catb n .
+  case n of
+    inl _   ->  Suc Zero , catt ast pure (Suc Zero)
+    inr n'  ->  extract (catb starj n')
+                merge (Zero , catt ast pure (Suc (pack j (inr n'))))
+  )))
+
+cat n = λ i . cat' i n
+\end{code}
 
 %% gcd example? https://github.com/pigworker/MGS14/blob/master/Lec4Crib.agda
 
@@ -1211,6 +1242,9 @@ equivalent to $\Sigma (x : A) . B$, which reproduces the standard
 result about recovering strong sums from weak ones by parametricity.
 
 
+\mytodo{when comparing with guarded recursive types, say that to
+internalize the functoriality "sized types" style you'd need directed
+type theory, which is a good technical reason to use clocks instead}
 
 %% - Describe Problem
 %%    - problem 1: replace syntactic checks
