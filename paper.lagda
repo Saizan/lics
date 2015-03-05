@@ -107,14 +107,14 @@
 %format e2 = e "_2"
 %format Fixb = Fix "_\bot"
 %format Fixt = Fix "_\top"
-%format wtribi = "\triangleright_\bot^i"
-%format wtriti = "\triangleright_\top^i"
-%format mutri = "\mu^\blacktriangleright"
+%format wtribi = "\trib^i"
+%format wtriti = "\trit^i"
+%format mutri = "\mu^\trib"
 %format mu = "\mu"
-%format nutri = "\nu^\blacktriangleright"
+%format nutri = "\nu^\trit"
 %format nu = "\nu"
-%format foldtri = fold "^\blacktriangleright"
-%format ut = "\!^\blacktriangleright"
+%format foldtri = fold "^\trib"
+%format ut = "\!^\trib"
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -333,7 +333,7 @@ In general we will have to deal with data of unrelated sizes, so
 instead of |trib| we have a family of type constructors |tribk| indexed by clock
 variables $\kappa$, which are introduced by the quantifiers |∀ k| and
 |∃ k|.
-Often we will leave the clocks implicit at the level of terms, however where appropriate we will use |λ| abstraction and application for |∀ k|, and the introduction |(pack)| and pattern matching for |∃ k|.
+Often we will leave the clocks implicit at the level of terms, however where appropriate we will use |λ| abstraction and application for |∀ k|, and the constructor |(pack)| and pattern matching for |∃ k|.
 \begin{code}
 (pack) : ∀ k . A hk -> ∃ k . A hk
 \end{code}
@@ -345,14 +345,16 @@ Node : ∀ k . A → List (tribk RoseTree uk A) → RoseTree uk A
 \end{code}
 
 As part of the interface of |tribk| we have the operation
-\begin{code}
-extract : ∀ k . tribk A -> A
-\end{code}
-which we overload for those |A| which mention |k| only in a strictly
-positive position, in the model (Section \ref{sec:model}) it will correspond to monotonicity
-with regard to time. Two particular cases are when |k| is not
-free in |A| and when |A = tribk B| for any |B|.
-\mytodo{only mention extract for k free in A, you never use anything else}
+\begin{array}{l r}
+|extract : ∀ k . tribk A -> A| & |k ∉ fv(A)|
+\end{array}
+that allows to get values out of the |tribk| modality as long as their
+type is independent of the clock |k|.
+In the language of Section \ref{sec:lang} such an operation will be
+implementable for a more general class of types, which will correspond
+to those monotone with regard to time in the model of Section
+\ref{sec:model}.
+
 %% Another primitive operation is |guardb|.
 %% \begin{code}
 %% guardb : (∃ k . A) -> ∃ k . tribk A
@@ -369,7 +371,7 @@ free in |A| and when |A = tribk B| for any |B|.
 
 
 %% unfold example.
-\mytodo{subsection?}
+\subsection{Well-founded unfolding}
 
 There are interesting uses of |tribk| even when not directly
 associated with a datatype, an example of this is the |unfold|
@@ -379,12 +381,22 @@ for the sum type with constructors |inl| and |inr|.
 unfold :  (∀ k . S hk -> ⊤ + (A × tribk S hk)) →
           ∀ k . S hk → List A
 unfold f s = case f s of
-               inl _          -> []
+               inl _         -> []
                inr (a , s')  -> a ∷ extract (unfold ut f s')
 \end{code}
+
 By restricting the type of the function |f| we are trying to unfold,
 so that it always has to return a smaller next state |s'|, we can
-guarantee termination. \mytodo{challenging for syntactic check because
+guarantee termination. Accepting unfold as terminating would be
+challenging for a syntactic check, since the relationship between |s'|
+and |s| depends on the semantics of |f|. In fact unfolding a constant function
+|f| that always returns |inr (a , s')| would never reach the base
+case. The |tribk| modality prevents such an |f| because there's no way to
+guarantee that the clock |k| has remaining time left without
+exploiting the structure of |S|. We see how to do that in the
+following example.
+
+\mytodo{challenging for syntactic check because
 s' not subterm of s} The use of |extract| is justified if we assume that |A| doesn't mention |k|.
 
 Using |unfold| and a type of bounded natural numbers we can define the
@@ -470,7 +482,7 @@ support |<*>|.
 
 In previous work on guarded recursion, coinductive types were obtained
 by universal clock quantification over their guarded variant, e.g. |∀
-k . Stream Nat uk| would be the type of coinductive streams. In the
+k . Stream uk Nat| would be the type of coinductive streams. In the
 present work we are able to dualize that result and obtain inductive types by
 existential quantification of the guarded variant, e.g. |∃ k . Nat
 uk|.
@@ -492,8 +504,11 @@ Suc uk : Nat uk -> Nat uk
 Suc uk   = λ n . inr n
 \end{code}
 
-Now we can bind the clock variable with an existential |Nat = ∃ k
-. Nat uk| and show that |Nat| supports the expected iterator.
+Now we can bind the clock variable with an existential to define
+\begin{code}
+Nat = ∃ k . Nat uk
+\end{code}
+and show that |Nat| supports the expected iterator.
 
 \begin{code}
 fold : A -> (A -> A) -> Nat -> A
@@ -512,7 +527,7 @@ different clocks |k| and |k'|.
 The key idea is that values of type |∃ k . A| must keep abstract the
 specific clock they were built with, exactly like weak sums in System
 F. Intuitively Nat will not be the initial algebra of |(⊤ +)| unless |Nat ≅
-T + Nat| holds, so we must be able to support both an interface and an
+⊤ + Nat| holds, so we must be able to support both an interface and an
 equational theory where clocks play no role.
 
 In the calculus we will internalize this invariance over the packaged
@@ -530,7 +545,7 @@ Once we scale up to a dependently typed language we will also be able
 to implement an induction principle in terms of |fix| in Section
 \ref{sec:induction}. However before that we will describe our
 calculus, where we directly manipulate time values instead of clocks
-to gain expressivity.
+to express programs more directly, rather than introducing additional combinators.
 
 \mytodo{Maybe have an introduction subsection about the model too?}
 \section{From Clocks to Time}
@@ -601,9 +616,9 @@ unrestricted first projection would let us observe the specific |Time|
 contained. The difference between |∃ i . A| and |Σ (i : Time). A| is
 that the former can only be eliminated into the universe |U|
 which conspicuosly lacks a code for |Time| itself (Figure \ref{fig:codes}).
-In the model we will see that |∃| is exactly a
-"truncation" of the corresponding |Σ| to the universe |U|
-\ref{sec:model}.
+%%In the model we will see that |∃| is exactly a
+%%"truncation" of the corresponding |Σ| to the universe |U|
+%%(Section \ref{sec:model}).
 \mytodo{give some intuition for the Universe as the one of "discrete" types, as opposed to Time and U itself having higher structure?}
 We also add a form of $\eta$ expansion for |∃ i|, which will be
 necessary to ensure the proper computational behaviour for induction.
