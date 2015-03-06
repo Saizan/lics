@@ -399,10 +399,7 @@ and |s| depends on the semantics of |f|. In fact unfolding a constant function
 case. The |tribk| modality prevents such an |f| because there's no way to
 guarantee that the clock |k| has remaining time left without
 exploiting the structure of |S|. We see how to do that in the
-following example.
-
-\mytodo{challenging for syntactic check because
-s' not subterm of s} The use of |extract| is justified if we assume that |A| doesn't mention |k|.
+following example. The use of |extract| is justified if we assume that |A| doesn't mention |k|.
 
 Using |unfold| and a type of bounded natural numbers we can define the
 function |downfrom|, which returns a list counting down to $1$.
@@ -416,7 +413,6 @@ downfrom =
                                          Zero    -> Left _
                                          Suc n'  -> Right ((pack(k)(n)) , n'))
 \end{code}
-\mytodo{find other symbol for introduction of existentials}
 The existential quantification allows us to forget the size
 information of the naturals in the list, so that we do not have to keep
 them synchronized with the clock |k| given to the function we unfold.
@@ -484,7 +480,7 @@ support |<*>|.
 \end{code}
 
 \subsection{Inductive types}
-
+\label{sec:indty}
 In previous work on guarded recursion, coinductive types were obtained
 by universal clock quantification over their guarded variant, e.g. |∀
 k . Stream uk Nat| would be the type of coinductive streams. In the
@@ -576,7 +572,7 @@ To clarify the flow of |Time| we adopt a syntax inspired by Sized
 Types \cite{Andreas} instead. It will also offer more flexibility in
 the dependent case. In fact the first step is to add to the dependently
 typed language of Figure \ref{fig:TT} a new type |Time|, together with inequality
-|(i j : Time) ⊢ i ≤ j| and zero |0 : Time| and successor |↑ : Time -> Time|
+|(i j : Time) ⊢ i ≤ j|, zero |0 : Time|, successor |↑ : Time -> Time| and a maximum operator |⊔ : Time -> Time -> Time|
 (Figure \ref{fig:Time}).
 
 Universal quantification over |Time| is simply done with a dependent
@@ -592,18 +588,14 @@ A|, and so we also omit the inequality proof in abstractions and
 applications, writing |λ j| in place of |λ j (p : ↑ j ≤ i)| and |f j|
 in place of |f j p|.
 
-\mytodo{is there a more standard notation for $\Pi$? should I just
-explain Agda's one?}
-
-As an example the operator |<*>| can be given the following type,
-which also makes the implementation something like the |S| combinator.
-Given a smaller time |j| we get the values of |f| and |x| at that time
-and apply one to the other.
+As an example the operator |<*>| is given the following type and implementation:
 \begin{code}
 (<*>) :  ∀ i . (∀ j < i . A -> B)
          ->    (∀ j < i . A) -> (∀ j < i . B)
 f <*>! x = λ j -> f j (x j)
 \end{code}
+Given a smaller time |j| we get the values of |f| and |x| at that time
+and apply one to the other.
 
 With this formulation it is also easy to see how to generalize |<*>|
 to the dependent case since we can get hold of |j| and pass that to
@@ -621,19 +613,23 @@ unrestricted first projection would let us observe the specific |Time|
 contained. The difference between |∃ i . A| and |Σ (i : Time). A| is
 that the former can only be eliminated into the universe |U|
 which conspicuosly lacks a code for |Time| itself (Figure \ref{fig:codes}).
+We can specialize the case expression to the non-dependent case and implement an |uncurry| combinator:
+\begin{code}
+uncurry : (∀ i. A → El B) → (∃ i . A) → El B
+uncurry f x = case x of (pack i a) -> f i a
+\end{code}
+where we can pattern match on |(pack i
+a)| because the return type belongs to the universe |U|.
+We also add a form of $\eta$ expansion for |∃ i|, which will be
+necessary to ensure the proper computational behaviour for induction.
 %%In the model we will see that |∃| is exactly a
 %%"truncation" of the corresponding |Σ| to the universe |U|
 %%(Section \ref{sec:model}).
-\mytodo{give some intuition for the Universe as the one of "discrete" types, as opposed to Time and U itself having higher structure?}
-We also add a form of $\eta$ expansion for |∃ i|, which will be
-necessary to ensure the proper computational behaviour for induction.
 
 Dually to |tritk| we have that |tribk| corresponds to a bounded |∃|
 and we allow similar shorthands |∃ (j < i). A| for |∃ j . ↑ j ≤ i ×
 A| and |(pack j a)| for |(pack j (p , a))|.
-
-As an example we show the implementation of |star|, where we can pattern match on |(pack j
-x)| because the return type belongs to the universe |U|:
+As an example we show the implementation of |star|:
 %%As an example we show the implementation of |star|, where the presence
 %%of |El| on the return type ensures that we can the pattern match on |(pack j
 %%x)|:
@@ -642,21 +638,31 @@ x)| because the return type belongs to the universe |U|:
           ->    (∃ j < i . A) -> El (∃ j < i . B)
 f stari (pack j x) = (pack j (f j x))
 \end{code}
-
-The |fix| combinator is taken as a primitive (Figure \ref{fig:fix}) with an
-associated equality describing how it unfolds. Such an equality is
-justified by the model but would lead to loss of strong normalization
-if used unrestricted as a computation rule. We discuss possible
-solutions in Section \ref{sec:SN}.
-
 We can also implement |extract| for |A : U|:
 \begin{code}
 extract : (A : U) -> ∀ i . (∃ j < i . El A) → El A
 extract A i (pack j a) = a
 \end{code}
 
-\mytodo{guardb and forceb never used, rework this section not to mention?}
-And implement a pair of basic conversion functions |guardb| and |forceb|:
+
+The |fix| combinator, shown in Figure \ref{fig:fix}, is taken as a
+primitive principle of well-founded induction on |Time|. The notation
+|A(i)| stands for a type with |i| occurring free, so that |A(j)| has
+instead all those occurrences replaced by |j|.
+The equality rule for |fix f i| describes it as the unique function with this unfolding,
+\begin{code}
+fix f i = f i (guardt (fix f) i)
+\end{code}
+however such an equality, which is
+justified by the model, would lead to loss of strong normalization
+if used unrestricted as a computation rule. We discuss possible solutions in Section \ref{sec:future}.
+
+As anticipated in Section \ref{sec:indty} we internalize with
+isomorphisms the properties of invariance with regard to |Time| of our
+language. The isomorphisms of Figure \ref{fig:isos} describe how the
+|Time| quantifiers commute with the other connectives and enrich the
+equational theory.
+We take as example the pair of |guardb| and |forceb|:
 \begin{code}
 guardb : (∃ i . A(i)) -> ∃ i . ∃ (j < i). A(j)
 guardb (pack i a) = (pack (↑ i) (pack i a))
@@ -664,10 +670,17 @@ guardb (pack i a) = (pack (↑ i) (pack i a))
 forceb : (∃ i . ∃ (j < i). A(j)) → ∃ i . A(i)
 forceb (pack i (pack j a)) = (pack j a)
 \end{code}
+the $\beta$ and $\eta$ rules for |∃ i| are not enough to show that they are an isomorphism,
+in particular they only allow us to conclude that
+\begin{code}
+guardb (forceb (pack i (pack j a))) = (pack (↑ j) (pack j a))
+\end{code}
+but having imposed that |guardb| and |forceb| form an isomorphism we can additionally deduce that
+\begin{code}
+(pack i (pack j a)) = (pack (↑ j) (pack j a))
+\end{code}
+showing that the packaged times |i| and |↑ j| are in fact irrelevant in that position.
 
-The model justifies blessing |forceb| and |guardb| with the status of
-isomorphism, together with the other canonical functions that witness
-the isomorphisms of Figure \ref{fig:isos}.
 In the case of |∀ i| we additionally have the usual isomorphisms that
 can be implemented for dependent functions:
 
@@ -676,6 +689,19 @@ can be implemented for dependent functions:
 |∀ i. (x : A) → B|\, &|≅|\, |(x : A) → ∀ i . B| & |i ∉ fv(A)|\\
 |∀ i. ∀ j. A|\, &|≅|\, |∀ j. ∀ i. A|\\
 \end{align*}
+
+The limitation to only finite |El A| in the isomorphism
+\begin{code}
+∃ i . (x : El A) -> ∃ (j < i). B ≅ (x : El A) → ∃ j . B
+\end{code}
+is because, to go from right to left, we need to find a |i| which is
+an upper bound for all the |j|s returned by the function |(x : El A) →
+∃ j . B| across the whole domain |El A|. However given only |⊔| we can
+only compute the upper bound of finitely many time values.  We did not
+introduce a |limit : (A -> Time) -> Time| operator because |A| might
+contain |Time| itself, and that would have led to impredicativity
+issues in the model of Section \ref{sec:model}. We plan to lift this
+restriction in further work.
 
 %include rules.lagda
 
@@ -755,8 +781,11 @@ Reading carefully we see that |s (pack j n) (rec j n)| has type |El (P
 (pack j n))))| while the expected type is |El (P (pack i (inr (pack j
 n))))|.  We can however conclude that |(pack (↑ j) (inr (pack j n)))|
 and |(pack i (inr (pack j n)))| are equal since they both get sent to
-|(pack j n)| by the |∃ i . ⊤ + (∃ (j < i) . A) ≅ ⊤ + ∃ i. A|
-isomorphism.
+|(pack j n)| by the
+\begin{code}
+∃ i . ⊤ + (∃ (j < i) . A) ≅ ⊤ + ∃ i. A
+\end{code}
+isomorphim.
 
 For an induction principle we also want the right computational
 behaviour when applied to the constructors for the datatype. We have
@@ -850,8 +879,18 @@ fold A f x (pack i m) = foldtri (\ (i , x) → A x)
                                 (λ i₁ m → f (F extract m)) i x m
 \end{code}
 
-As a corollary we obtain initial algebras for all finitely-branching polynomial functors.
-\mytodo{flesh out a bit}
+To determine whether a functor |F| weakly commutes with |∃ i| we make
+use of the isomorphisms of Figure \fig{isos}, in particular we can
+handle the finitary-branching strictly positive functors but not
+functors of the form
+\begin{code}
+F X = Nat -> X
+\end{code}
+or
+\begin{code}
+F X = Stream X
+\end{code}
+because of the limitations already discussed.
 
 \subsection{(Guarded) Final Coalgebras}
 The above result can be dualized to obtain final coalgebras of
@@ -1241,11 +1280,12 @@ A. B)$. If both $A$ and $B$ belong in $U$ then $∃ (x : A) . B$ is
 equivalent to $\Sigma (x : A) . B$, which reproduces the standard
 result about recovering strong sums from weak ones by parametricity.
 
-
+\section{Related Works}
 \mytodo{when comparing with guarded recursive types, say that to
 internalize the functoriality "sized types" style you'd need directed
 type theory, which is a good technical reason to use clocks instead}
-
+\section{Further Work}
+\label{sec:future}
 %% - Describe Problem
 %%    - problem 1: replace syntactic checks
 %%            - examples of anti-modularity?
