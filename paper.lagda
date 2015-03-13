@@ -193,16 +193,20 @@ anti-modular.
 
 Guarded recursion, first introduced by Nakano, has been recently
 applied in the coprogramming case to ensure totality through typing
-instead, by capturing through a delay modality the relationship between
-the consumption and the production of data.
+instead. The relationship between the consumption and the production
+of data is captured by a delay modality, which allows to give a safe
+type to a general fixpoint combinator.
 
-In this paper we show how that approach can be extended to
+Here we show how that approach can be extended to
 additionally ensure termination of recursive programs, through the
 introduction of a dual modality and the interaction between the
-two. As in the coprogramming case, however, we need clock variables to
-separate different flows of data. Existential quantification over
-clocks then recovers inductive types from guarded ones, dually to how
-universal quantification recovers coinductive types.
+two. We recast the fixpoint combinator as well-founded induction with
+additional invariance guarantees, which we justify through a
+parametric model.
+We obtain a dependently typed calculus which modularly ensures
+totality for both coinductive and (finitely branching) inductive
+types.
+
 
 %% - guarded recursion
 %% - new modality
