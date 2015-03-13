@@ -1,0 +1,237 @@
+% evergreens
+\newcommand{\bla}{\ensuremath{\mbox{$$}}} % invisible, but not ignored
+\newcommand{\der}{\,\vdash}
+\newcommand{\of}{{:}}
+\newcommand{\red}{\longrightarrow}
+\newcommand{\contr}{\mapsto}
+\newcommand{\restrict}{\upharpoonright}
+\newcommand{\FV}{\ensuremath{\mathsf{FV}}}
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\den}[1]{\llbracket #1 \rrbracket}
+\newcommand{\Den}[2]{\llbracket #1 \rrbracket_{#2}}
+\newcommand{\vect}{\mathaccent"017E }
+
+% latin etc. abbrev
+\newcommand{\abbrev}[1]{#1} % alternative: \emph{#1}
+\newcommand{\cf}{\abbrev{cf.}\ }
+\newcommand{\eg}{\abbrev{e.\,g.}}
+\newcommand{\Eg}{\abbrev{E.\,g.}}
+\newcommand{\ie}{\abbrev{i.\,e.}}
+\newcommand{\Ie}{\abbrev{I.\,e.}}
+\newcommand{\etal}{\abbrev{et.\,al.}}
+\newcommand{\wwlog}{w.\,l.\,o.\,g.} % \wlog is ``write into log file''
+\newcommand{\Wlog}{W.\,l.\,o.\,g.}
+\newcommand{\wrt}{w.\,r.\,t.}
+
+% paragraphs
+\newcommand{\para}[1]{\paragraph*{\it#1}}
+\newcommand{\paradot}[1]{\para{#1.}}
+
+% proof by cases
+\newenvironment{caselist}{%
+  \begin{list}{{\it Case}}{\setlength{\leftmargin}{5ex}}%
+}{\end{list}%
+}
+\newenvironment{subcaselist}{%
+  \begin{list}{{\it Subcase}}{}%
+}{\end{list}%
+}
+
+\newcommand{\nextcase}{\item~}
+% meta-level logic
+\newcommand{\mfor}{\ \mbox{for}\ }
+\newcommand{\mthen}{\ \mbox{then}\ }
+\newcommand{\mif}{\ \mbox{if}\ }
+\newcommand{\miff}{\ \mbox{iff}\ }
+\newcommand{\motherwise}{\ \mbox{otherwise}}
+\newcommand{\mnot}{\mbox{not}\ }
+\newcommand{\mand}{\ \mbox{and}\ }
+\newcommand{\mor}{\ \mbox{or}\ }
+\newcommand{\mimplies}{\ \mbox{implies}\ }
+\newcommand{\mimply}{\ \mbox{imply}\ }
+\newcommand{\mforall}{\ \mbox{for all}\ }
+\newcommand{\mforsome}{\ \mbox{for some}\ }
+\newcommand{\mexists}{\mbox{exists}\ }
+\newcommand{\mexist}{\mbox{exist}\ }
+\newcommand{\mtrue}{\mbox{true}}
+\newcommand{\mwhere}{\ \mbox{where}\ }
+\newcommand{\mwith}{\ \mbox{with}\ }
+\newcommand{\mholds}{\ \mbox{holds}\ }
+\newcommand{\rin}{\ \mbox{in}\ }
+% proofs
+\newcommand{\msince}{\mbox{since}\ }
+\newcommand{\mdef}{\mbox{by def.}}
+\newcommand{\mass}{\mbox{assumption}}
+\newcommand{\mhyp}{\mbox{by hyp.}}
+\newcommand{\mlemma}[1]{\mbox{by Lemma~#1}}
+\newcommand{\mih}[1][]{\mbox{by ind.hyp.}#1}
+\newcommand{\mgoal}[1][]{\mbox{goal\ifthenelse{\equal{#1}{}}{}{~#1}}}
+\newcommand{\mby}[1]{\mbox{by #1}}
+\newcommand{\minfrule}{\mbox{by inference rule}}
+
+
+% Inference rules
+\newcommand{\rulename}[1]{\ensuremath{\mbox{\sc#1}}}
+\newcommand{\ru}[2]{\dfrac{\begin{array}[b]{@{}c@{}} #1 \end{array}}{#2}}
+\newcommand{\rux}[3]{\ru{#1}{#2}\ #3}
+\newcommand{\nru}[3]{#1\ \ru{#2}{#3}}
+\newcommand{\nrux}[4]{#1\ \ru{#2}{#3}\ #4}
+\newcommand{\dstack}[2]{\begin{array}[b]{c}#1\\#2\end{array}}
+\newcommand{\ndru}[4]{#1\ \ru{\dstack{#2}{#3}}{#4}}
+\newcommand{\ndrux}[5]{#1\ \ru{\dstack{#2}{#3}}{#4}\ #5}
+
+% Substitution and function update
+% read ``\subst F X A'' as ``substitute F for X in A''
+%\newcommand{\subst}[3]{#3[#2 := #1]}
+%\newcommand{\subst}[3]{[#1/#2]#3}
+\newcommand{\subst}[3]{#3[#1/#2]}
+% read ``\update \theta X \G'' as update \theta at point X by \G
+\newcommand{\update}[3]{#1[#2 \mapsto #3]}
+%\newcommand{\update}[3]{#1,#2 \is #3}
+
+
+% The calculus
+\newcommand{\lambdalater}{\ensuremath{\lambda^{\tlater}}}
+
+
+% Types
+%%\newcommand{\rt}[1]{\ensuremath{\mid\!\!{#1}\!\!\mid_{R}}}
+\newcommand{\rt}[1]{\ensuremath{{#1}_O/^{\st}{{#1}_R}}}
+\newcommand{\U}{\ensuremath{\mathsf{U}}}
+\newcommand{\st}{\ensuremath{\mathsf{=}}}
+\newcommand{\El}{\ensuremath{\mathsf{El}}}
+\newcommand{\CxtF}{\ensuremath{\mathsf{Cxt}}}
+\newcommand{\Tr}{\ensuremath{\mathsf{Tr}}}
+\newcommand{\tr}{\ensuremath{\mathsf{tr}}}
+\newcommand{\elim}{\ensuremath{\mathsf{elim}}}
+\newcommand{\LiftF}{\ensuremath{\mathsf{Lift}}}
+\newcommand{\liftF}{\ensuremath{\mathsf{lift}}}
+\newcommand{\TyF}[1]{\ensuremath{\mathsf{Ty}({#1})}}
+\newcommand{\TmF}[2]{\ensuremath{\mathsf{Tm}({#1},{#2})}}
+\newcommand{\CSet}{\ensuremath{\mathsf{Set}}}
+\newcommand{\RG}{\ensuremath{\mathsf{RG}}}
+\newcommand{\Le}{\ensuremath{\le}}
+\newcommand{\Time}{\ensuremath{\mathsf{Time}}}
+\newcommand{\pack}[2]{({#1} , {#2})}
+\newcommand{\up}{\ensuremath{\uparrow}}
+\newcommand{\trib}{\blacklozenge}
+\newcommand{\trit}{\blacksquare}
+
+%% \newcommand{\trib}{\blacktriangleright_\bot}
+%% \newcommand{\trit}{\blacktriangleright_\top}
+\newcommand{\ta}{\ensuremath{\AgdaBound{a}}}
+\newcommand{\tb}{\ensuremath{\AgdaBound{b}}}
+\newcommand{\tc}{\ensuremath{\AgdaBound{c}}}
+\newcommand{\later}{\mathord{\blacktriangleright}\,}
+\newcommand{\tlater}{\mathord{\blacktriangleright}}
+%\newcommand{\sem}[1]{\mathrel{\den{#1}}}
+\newcommand{\semto}{\mathrel{\den{\to}}}
+\newcommand{\semtimes}{\mathrel{\den{\times}}}
+\newcommand{\semlater}{\mathop{\den{\tlater}}}
+\newcommand{\semtop}{\mathop{\den{\top}}}
+
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\B}{\mathcal{B}}
+\newcommand{\C}{\mathcal{C}}
+\newcommand{\tsize}{\mathsf{size}}
+
+\newcommand{\hatted}[1]{\AgdaInductiveConstructor{\ensuremath{\hat{#1}}}}
+\newcommand{\hatto}{\hatted{\to}}
+\newcommand{\hattimes}{\hatted{\times}}
+\newcommand{\hatlater}{\hatted{\later}}
+\newcommand{\hatmu}{\hatted{\mu}}
+
+% Terms
+\newcommand{\tfst}{\mathsf{fst}}
+\newcommand{\tsnd}{\mathsf{snd}}
+\newcommand{\tnext}{\mathsf{next}}
+\newcommand{\fst}[1]{\tfst\;#1}
+\newcommand{\snd}[1]{\tsnd\;#1}
+\newcommand{\pure}[1]{\tnext\;#1}
+\newcommand{\apply}[2]{#1 \mathop{∗} #2}
+\newcommand{\applyp}[2]{\apply{(#1)}{(#2)}}
+\newcommand{\tfix}{\mathsf{fix}}
+\newcommand{\afix}{\AgdaFunction{fix}}
+
+% Agda 
+\newcommand{\Ty}{\AgdaDatatype{Ty}}
+\newcommand{\infTy}{\AgdaRecord{∞Ty}}
+\newcommand{\va}{\AgdaBound{a}}
+\newcommand{\vb}{\AgdaBound{b}}
+\newcommand{\vc}{\AgdaBound{c}}
+\newcommand{\vainf}{\AgdaBound{a∞}}
+\newcommand{\vbinf}{\AgdaBound{b∞}}
+\newcommand{\vcinf}{\AgdaBound{c∞}}
+\newcommand{\vi}{\AgdaBound{i}}
+\newcommand{\vj}{\AgdaBound{j}}
+\newcommand{\vx}{\AgdaBound{x}}
+\newcommand{\vy}{\AgdaBound{y}}
+\newcommand{\vn}{\AgdaBound{n}}
+\newcommand{\vm}{\AgdaBound{m}}
+\newcommand{\vt}{\AgdaBound{t}}
+\newcommand{\vtprime}{\AgdaBound{t'}}
+\newcommand{\vnprime}{\AgdaBound{n'}}
+\newcommand{\vu}{\AgdaBound{u}}
+\newcommand{\tdelay}{\AgdaCoinductiveConstructor{delay}}
+\newcommand{\tforce}{\AgdaField{force}}
+\newcommand{\tcoinductive}{\AgdaKeyword{coinductive}}
+\newcommand{\ttop}{\AgdaFunction{top}}
+\newcommand{\tcast}{\AgdaFunction{cast}}
+\newcommand{\Var}{\AgdaDatatype{Var}}
+\newcommand{\Gam}{\AgdaBound{Γ}}
+\newcommand{\Del}{\AgdaBound{Δ}}
+\newcommand{\Cxt}{\AgdaDatatype{Cxt}}
+\newcommand{\ECxt}{\AgdaDatatype{ECxt}}
+\newcommand{\Ehole}{\AgdaDatatype{Ehole}}
+\newcommand{\PCxt}{\AgdaDatatype{PCxt}}
+\newcommand{\PNe}{\AgdaDatatype{PNe}}
+\newcommand{\Tm}{\AgdaDatatype{Tm}}
+\newcommand{\tzero}{\AgdaInductiveConstructor{zero}}
+\newcommand{\tsuc}{\AgdaInductiveConstructor{suc}}
+\newcommand{\tvar}{\AgdaInductiveConstructor{var}}
+\newcommand{\tabs}{\AgdaInductiveConstructor{abs}}
+\newcommand{\tapp}{\AgdaInductiveConstructor{app}}
+\newcommand{\tpair}{\AgdaInductiveConstructor{pair}}
+\newcommand{\afst}{\AgdaInductiveConstructor{fst}}
+\newcommand{\asnd}{\AgdaInductiveConstructor{snd}}
+\newcommand{\anext}{\AgdaInductiveConstructor{next}}
+\newcommand{\arename}{\AgdaFunction{rename}}
+\newcommand{\tmapS}{\AgdaFunction{mapS}}
+\newcommand{\ttail}{\AgdaFunction{tail}}
+\newcommand{\vmapS}{\mathit{mapS}}
+%\newcommand{\t}{\AgdaInductiveConstructor{}}
+%\newcommand{\t}{\AgdaInductiveConstructor{}}
+\newcommand{\aleq}{\ensuremath{\mathrel{\AgdaFunction{≤}}}}
+\newcommand{\propeq}{\AgdaDatatype{≡}}
+\newcommand{\bisim}{\AgdaDatatype{≅}}
+\newcommand{\bisiminf}{\AgdaDatatype{∞≅}}
+\newcommand{\sn}{\AgdaDatatype{sn}}
+\newcommand{\SN}{\AgdaDatatype{SN}}
+\newcommand{\SNe}{\AgdaDatatype{SNe}}
+\newcommand{\nred}[1]{\ensuremath{\mathrel{\AgdaDatatype{⟨}\AgdaBound{#1}\AgdaDatatype{⟩⇒β}}}}
+\newcommand{\nwhr}[1]{\ensuremath{\mathrel{\AgdaDatatype{⟨}\AgdaBound{#1}\AgdaDatatype{⟩⇒}}}}
+\newcommand{\IndRen}{\AgdaDatatype{IndRen}}
+\newcommand{\tcong}{\AgdaInductiveConstructor{cong}}
+\newcommand{\texp}{\AgdaInductiveConstructor{exp}}
+\newcommand{\vP}{\AgdaBound{P}}
+\newcommand{\vE}{\AgdaBound{E}}
+\newcommand{\vEt}{\AgdaBound{Et}}
+\newcommand{\vEtprime}{\AgdaBound{Et'}}
+\newcommand{\vC}{\AgdaBound{C}}
+\newcommand{\vCt}{\AgdaBound{Ct}}
+\newcommand{\vCtprime}{\AgdaBound{Ct'}}
+\newcommand{\NbetaCxt}{\AgdaDatatype{NβCxt}}
+\newcommand{\NbetaHole}{\AgdaDatatype{NβHole}}
+\newcommand{\whr}{\ensuremath{\mathrel{\AgdaFunction{⇒}}}}
+\newcommand{\SizeLt}{\AgdaFunction{Size<}}
+\newcommand{\asize}{\AgdaFunction{size}}
+
+% Generic shorthands
+\newcommand{\aic}[1]{\AgdaInductiveConstructor{#1}}
+\newcommand{\af}[1]{\AgdaFunction{#1}}
+\newcommand{\ab}[1]{\AgdaBound{#1}}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "aplas14.tex"
+%%% End: 
