@@ -19,7 +19,7 @@
 %
 %-----------------------------------------------------------------------------
 
-\nonstopmode
+%\nonstopmode
 \documentclass[natbib,authoryear,fleqn]{sigplanconf}
 % The following \documentclass options may be useful:
 
@@ -31,11 +31,13 @@
 \usepackage{latexsym}
 \usepackage{fancyvrb}
 \usepackage{mathpartir}
+\usepackage{tikz-cd}
 
 \usepackage{todonotes}
 %%\newcommand{\mytodo}[2][]{}
 \newcommand{\mytodo}[2][]{\todo[color=gray!20,size=\scriptsize,fancyline,#1]{#2}}
 \newcommand{\redtodo}[2][]{\todo[color=red!20,size=\scriptsize,fancyline,#1]{#2}}
+\usepackage{hyperref}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % lhs2TeX setup
@@ -118,6 +120,9 @@
 %format nu = "\nu"
 %format foldtri = fold "^\trib"
 %format ut = "\!^\trib"
+%format catt = cat "^\trit"
+%format catb = cat "^\trib"
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -188,7 +193,7 @@ anti-modular.
 
 Guarded recursion, first introduced by Nakano, has been recently
 applied in the coprogramming case to ensure totality through typing
-instead, by capturing through a new modality the relationship between
+instead, by capturing through a delay modality the relationship between
 the consumption and the production of data.
 
 In this paper we show how that approach can be extended to
@@ -269,8 +274,8 @@ other than sticking to some specific ``design patterns'' for
 
 Recently there has been a fair amount of research into moving the information about how functions consume and produce
 data to the type level, so that totality checking can be more modular
-\cite{BobConor}, \cite{Rasmus}, \cite{Andreas}. In particular the previous work on Guarded Recursion (\cite{BobConor},
-\cite{Rasmus}) has handled the case of ensuring totality for
+\cite{atkeyMcBride:icfp13}, \cite{mogelberg:lics2014}, \cite{Andreas}. In particular the previous work on Guarded Recursion (\cite{atkeyMcBride:icfp13},
+\cite{mogelberg:lics2014}) has handled the case of ensuring totality for
 corecursion, i.e. manipulating infinite data. The issue
 of ensuring totality in a modular way for recursion, over well-founded data, was however
 left open. We address that problem by presenting a calculus that supports both corecursion
@@ -279,7 +284,7 @@ and recursion with a single guarded fixed point combinator.
 
 
 %%This paper extends to the case of recursion
-%%the previous work on Guarded Recursion \cite{BobConor} \cite{Rasmus},
+%%the previous work on Guarded Recursion \cite{atkeyMcBride:icfp13} \cite{mogelberg:lics2014},
 %%which was focused on corecursion and where inductive types were only
 %%given their primitive recursor, by presenting a more relaxed model where
 %%the connectives for guarded recursion can coexist with their duals.
@@ -293,7 +298,7 @@ We make the following contributions:
   coalgebras, i.e. inductive and coinductive datatypes. The type
   system is an extension of Martin L\"{o}f Type Theory.
 \item We give an interpretation of the system into a relationally
-  parametric model of dependent type theory \cite{atkey:param-model},
+  parametric model of dependent type theory \cite{atkey:param},
   drawing a parallel between clock quantification and parametric
   polymorphism.
 \item In particular we show how existential types which support
@@ -310,11 +315,9 @@ example we can give the data constructor |Node| a more precise type.
 \begin{code}
 Node : A -> (List (trib RoseTree A)) → RoseTree A
 \end{code}
-The type constructor |trib| makes explicit that the subtrees are
-built, and can be consumed, in fewer time/steps than the resulting
-tree. \mytodo{is time still a good metaphor? In the end this is all
-  about well-founded induction, maybe I should be upfront about that
-  from the start. !Time as a countdown! }
+We use the modality |trib| to explicitly mark the recursive occurrence
+of |RoseTree A|. Because of this the subtrees have a type that differs from the
+root, and we will be able to keep track of which recursive calls are valid.
 
 Once we've done that we can write |mapRT| by reusing |map|.
 \begin{code}
@@ -332,7 +335,16 @@ mapRT f ts = mapRT f ts
 the types would not match because |ts| is of type |RoseTree A|
 rather than |trib RoseTree A|.
 
-In general we will have to deal with data of unrelated sizes, so
+We can explain the meaning of |trib A| using a countdown metaphor: if
+we consider that we have a finite amount of time |i| left to complete
+our computation, a value of type |trib A| tells us that there is a
+future time |j| at which we have a value of type |A|. So in
+particular, even if we take |A| to be the unit type |⊤|, the type
+|trib ⊤| is not necessarily inhabited, because we might have no time
+left. Considering that our times are counting down to |0| we say that future
+times are smaller.
+
+In general we will have to deal with data on unrelated timelines, so
 instead of |trib| we have a family of type constructors |tribk| indexed by clock
 variables $\kappa$, which are introduced by the quantifiers |∀ k| and
 |∃ k|.
@@ -341,24 +353,11 @@ Often we will leave the clocks implicit at the level of terms, however where app
 (pack) : ∀ k . A hk -> ∃ k . A hk
 \end{code}
 The proper type of |Node| will then have a clock indexing the result
-type |RoseTree uk|, which is the type of trees bounded in size by
+type, which becomes |RoseTree uk A| i.e. the type of trees bounded by
 the clock |k|.
 \begin{code}
 Node : ∀ k . A → List (tribk RoseTree uk A) → RoseTree uk A
 \end{code}
-
-As part of the interface of |tribk| we have the operation
-\[
-\begin{array}{l r}
-|extract : ∀ k . tribk A -> A| & |k ∉ fv(A)|
-\end{array}
-\]
-that allows to get values out of the |tribk| modality as long as their
-type is independent of the clock |k|.
-In the language of Section \ref{sec:lang} such an operation will be
-implementable for a more general class of types, which will correspond
-to those monotone with regard to time in the model of Section
-\ref{sec:model}.
 
 %% Another primitive operation is |guardb|.
 %% \begin{code}
@@ -373,50 +372,6 @@ to those monotone with regard to time in the model of Section
 %% \begin{code}
 %% forceb : (∃ k . tribk A) -> ∃ k . A
 %% \end{code}
-
-
-%% unfold example.
-\subsection{Well-founded unfolding}
-
-There are interesting uses of |tribk| even when not directly
-associated with a datatype, an example of this is the |unfold|
-function for |List|. We use |⊤| for the type with one element, and |+|
-for the sum type with constructors |inl| and |inr|.
-\begin{code}
-unfold :  (∀ k . S hk -> ⊤ + (A × tribk S hk)) →
-          ∀ k . S hk → List A
-unfold f s = case f s of
-               inl _         -> []
-               inr (a , s')  -> a ∷ extract (unfold ut f s')
-\end{code}
-
-By restricting the type of the function |f| we are trying to unfold,
-so that it always has to return a smaller next state |s'|, we can
-guarantee termination. Accepting unfold as terminating would be
-challenging for a syntactic check, since the relationship between |s'|
-and |s| depends on the semantics of |f|. In fact unfolding a constant function
-|f| that always returns |inr (a , s')| would never reach the base
-case. The |tribk| modality prevents such an |f| because there's no way to
-guarantee that the clock |k| has remaining time left without
-exploiting the structure of |S|. We see how to do that in the
-following example. The use of |extract| is justified if we assume that |A| doesn't mention |k|.
-
-Using |unfold| and a type of bounded natural numbers we can define the
-function |downfrom|, which returns a list counting down to $1$.
-\begin{code}
-Zero  : ∀ k . Nat uk
-Suc   : ∀ k . tribk Nat uk -> Nat uk
-
-downfrom : ∀ k . Nat uk → List (∃ k . Nat uk)
-downfrom =
-  unfold   (λ k n ->   case n of
-                                         Zero    -> Left _
-                                         Suc n'  -> Right ((pack(k)(n)) , n'))
-\end{code}
-The existential quantification allows us to forget the size
-information of the naturals in the list, so that we do not have to keep
-them synchronized with the clock |k| given to the function we unfold.
-
 
 \subsection{Fixedpoint combinators}
 \label{fixb}
@@ -442,25 +397,12 @@ More generally though we also want to support cases of productive
 value recursion, like Haskell's |ones = 1 : ones|, as in the previous
 works on guarded recursion. For this purpose we make use of the modality
 |tritk|, the dual of |tribk|, to guard the recursion.
-
 \begin{code}
-fix :  (∀ k . tritk A hk -> A hk) -> ∀ k . A hk
+fix :  (∀ k . tritk A -> A) -> ∀ k . A
 \end{code}
+Using the time metaphor, a value of type |tritk A| gives us an |A| at any time in the future.
 
-Intuitively |tritk A hk| requires some time to be spent before the
-data is accessible, as opposed to |tribk A hk| which instead
-guarantees that enough time is available. It is then natural to
-combine requirements and guarantees when they match, so we introduce
-the combinator |star|, which can be used to define |fixb| in terms of
-|fix|.
-
-\begin{code}
-_star_ : ∀ k . tritk (A hk -> B hk) -> tribk A hk -> tribk B hk
-
-fixb f = fix (λ k r . f k (λ x . r stark x))
-\end{code}
 With a suitable type |Stream uk| we can then define |ones|.
-
 \begin{code}
 cons : ∀ k . tritk Stream uk A  -> Stream uk A
 
@@ -469,15 +411,89 @@ ones = fix (λ k xs . cons 1 xs)
 \end{code}
 
 Other examples involving |tritk| can be found in previous work that
-focuses on coinduction \cite{BobConor} \cite{Rasmus}. An important
-difference is that in the present work |tritk| is no longer an
-applicative functor since |pure : ∀ k . A hk -> tritk A hk| is not
-supported in general, e.g. not for |A = tribk B|, however we do still
-support |<*>|.
-
+focuses on coinduction \cite{atkeyMcBride:icfp13} \cite{mogelberg:lics2014}. An important
+difference is that in the present work |tritk| is no longer a full
+applicative functor.
+In fact while we do still support |<*>|,
 \begin{code}
 <*> :  ∀ k . tritk (A hk -> B hk) -> tritk A hk -> tritk B hk
 \end{code}
+we do not support |pure| in general, e.g. not at type |tribk A|,
+but we do for those types that do not mention |k|:
+\[
+\begin{array}{l r}
+|pure : ∀ k . A -> tritk A| & |k ∉ fv(A)|
+\end{array}
+\]
+In the language of Section \ref{sec:lang} such an operation will be
+implementable for a more general class of types, which will correspond
+to those antitone with regard to time in the model of Section
+\ref{sec:model}.
+
+The interface of |tribk| is composed of two operations, |star| and |extract|.
+
+If we have a function at any time in the future |tritk (A -> B)| and
+an argument at some time in the future |tribk A|, we can apply one to the other with the combinator
+|star|,
+\begin{code}
+_star_ : ∀ k . tritk (A hk -> B hk) -> tribk A hk -> tribk B hk
+\end{code}
+which in particular can be used to define |fixb| in terms of
+|fix|
+\begin{code}
+fixb f = fix (λ k r . f k (λ x . r stark x))
+\end{code}
+
+Lastly, as a dual of |pure|, we have |extract|,
+\[
+\begin{array}{l r}
+|extract : ∀ k . tribk A -> A| & |k ∉ fv(A)|
+\end{array}
+\]
+that allows to get values out of the |tribk| modality as long as their
+type is independent of the clock |k|.
+
+%% unfold example.
+\subsection{Well-founded unfolding}
+
+There are interesting uses of |tribk| even when not directly
+associated with a datatype, an example of this is the |unfold|
+function for |List|. We use |⊤| for the type with one element, and |+|
+for the sum type with constructors |inl| and |inr|.
+\begin{code}
+unfold :  (∀ k . S hk -> ⊤ + (A × tribk S hk)) →
+          ∀ k . S hk → List A
+unfold f s = case f s of
+               inl _         -> []
+               inr (a , s')  -> a ∷ extract (unfold ut f s')
+\end{code}
+
+By restricting the type of the function |f| we are trying to unfold,
+so that it always has to return a smaller next state |s'|, we can
+guarantee termination. Accepting unfold as terminating would be
+challenging for a syntactic check, since the relationship between |s'|
+and |s| depends on the semantics of |f|. In fact unfolding a constant function
+|f| that always returns |inr (a , s')| would never reach the base
+case. The |tribk| modality prevents such an |f| because there's no way to
+guarantee that the clock |k| has remaining time left without
+exploiting the structure of |S|. We see how to do that in the
+following example. The use of |extract| is justified if we assume that |A| does not mention |k|.
+
+Using |unfold| and a type of bounded natural numbers we can define the
+function |downfrom|, which returns a list counting down to $1$.
+\begin{code}
+Zero  : ∀ k . Nat uk
+Suc   : ∀ k . tribk Nat uk -> Nat uk
+
+downfrom : ∀ k . Nat uk → List (∃ k . Nat uk)
+downfrom =
+  unfold   (λ k n ->   case n of
+                                         Zero    -> Left _
+                                         Suc n'  -> Right ((pack(k)(n)) , n'))
+\end{code}
+The existential quantification allows us to forget the time
+information of the naturals in the list, so that we do not have to keep
+them synchronized with the clock |k| given to the function we unfold.
 
 \subsection{Inductive types}
 \label{sec:indty}
@@ -552,7 +568,7 @@ to express programs more directly, rather than introducing additional combinator
 \section{From Clocks to Time}
 \label{sec:lang}
 The notation we have used in the examples so far is closely modeled on
-the one used in \cite{BobConor} and \cite{Rasmus}. In particular
+the one used in \cite{atkeyMcBride:icfp13} and \cite{mogelberg:lics2014}. In particular
 clocks are a convenient abstraction over explicitly handling time values,
 since we can use the same clock to refer to different amounts of type
 depending on the context.
@@ -561,7 +577,7 @@ We can think of clock variables as indexes into an environment of
 values of type |Time|. This environment however is not passed untouched to every
 sub-expression, or simply added to by binders, it also gets updated at the index |k| by
 the modalities |tritk| and |tribk| for the scope of their
-arguments \mytodo{does this correspond to dynamic scope?}.
+arguments.
 So the same clock variable represents different time values in different parts of a type expression.
 
 %%A good
@@ -600,7 +616,6 @@ and apply one to the other.
 With this formulation it is also easy to see how to generalize |<*>|
 to the dependent case since we can get hold of |j| and pass that to
 |x| to obtain a valid argument for the dependent type |B|:
-\mytodo{maybe i don't need to give it a different name since it is strictly more general?}
 \begin{code}
 (<*>>) :  ∀ i . (∀ j < i . (x : A) -> B x)
           ->    (x : ∀ j < i . A) -> (∀ j < i . B (x j))
@@ -655,7 +670,8 @@ fix f i = f i (guardt (fix f) i)
 \end{code}
 however such an equality, which is
 justified by the model, would lead to loss of strong normalization
-if used unrestricted as a computation rule. We discuss possible solutions in Section \ref{sec:future}.
+if used unrestricted as a computation rule, making typechecking undecidable.
+We discuss possible solutions in Section \ref{sec:future}.
 
 As anticipated in Section \ref{sec:indty} we internalize with
 isomorphisms the properties of invariance with regard to |Time| of our
@@ -872,15 +888,15 @@ Proof (Sketch). From |F| weakly commuting with |∃ i| at type |mutri F| we
 obtain an indexed isomorphism |F (mu F) ≅ mu F| and so in particular
 an algebra |F (mu F) ⇒ F|, the morphism from any other algebra is
 obtained from the one for |mutri| and inherits his uniqueness since
-there's a bijection between algebra morphisms like in \cite{Rasmus}.
+there's a bijection between algebra morphisms like in \cite{mogelberg:lics2014}.
 \begin{code}
 fold : (A : I → U) -> (F A ⇒ A) → (mu F ⇒ A)
 fold A f x (pack i m) = foldtri (\ (i , x) → A x)
-                                (λ i₁ m → f (F extract m)) i x m
+                                (λ j m → f (F extract m)) i x m
 \end{code}
 
 To determine whether a functor |F| weakly commutes with |∃ i| we make
-use of the isomorphisms of Figure \fig{isos}, in particular we can
+use of the isomorphisms of Figure \ref{fig:isos}, in particular we can
 handle the finitary-branching strictly positive functors but not
 functors of the form
 \begin{code}
@@ -960,16 +976,6 @@ cat n = λ i . cat' i n
 %% gcd example? https://github.com/pigworker/MGS14/blob/master/Lec4Crib.agda
 
 
-\section{Disclaimer}
-
-The equational theory described in Section \ref{sec:lang} is quite
-strong, making fixed points obtained by |fix| judgementally unique and
-the type isomorphisms holding strictly. These equations are indeed
-justified strictly by the model, however when fitting this into an
-intensional type theory where equality is checked by normalization
-some thought will be required.
-
-
 \section{A Parametric Model}
 \label{sec:model}
 
@@ -1030,7 +1036,7 @@ $A$ and term $M$.
 
 
 Since $\CxtF$ is a functor category into $\CSet$ it inherits a standard
-Category with Families structure(\cite{Hoffman}) including definitions
+Category with Families structure \cite{Hofmann} including definitions
 for the standard connectives, most of them lifted pointwise from
 \CSet, here we will mention only enough to explain our connectives.
 
@@ -1051,8 +1057,17 @@ We can also extend a context $\Gamma$ by a type $A \in \TyF \Gamma$ to
 obtain another context $\Gamma.A$ by pairing up each component, so
 that we have a map $\tfst : \Gamma.A \to \Gamma$ which projects out the
 first component and functions as a weakening substitution.
+\begin{gather*}
+\begin{array}{l c l}
+(\Gamma.A)_O &=& \{ (\gamma,a) \mid \gamma \in \Gamma, a \in A_O(\gamma)\}\\
+\multicolumn{3}{l}{(\Gamma.A)_R((\gamma_0,a_0),(\gamma_1,a_1))} \\
+  &=& \{ (\gamma_r,a_r) \mid \gamma_r \in \Gamma_R(\gamma_0,\gamma_1), a_r \in A_R(\gamma_r,a_0,a_1)\}\\
+\end{array}
+\end{gather*}
 
-Finally an element $M$ of $\TmF \Gamma A$ correponds to a map $\Gamma \to \Gamma.A$ such that $\tfst \circ M = id_\Gamma$:
+Finally an element $M$ of $\TmF \Gamma A$ correponds in principle to a
+map $\Gamma \to \Gamma.A$ such that $\tfst \circ M = id_\Gamma$. It is
+however defined explicitly as a pair of the following components:
 \begin{gather*}
 M_o : \forall \gamma \in \Gamma_O, \; A_O(\gamma)\\
 M_r : \forall \gamma_0, \gamma_1 \in \Gamma_O, \; \forall \gamma_r \in \Gamma_R(\gamma_0,\gamma_1), \; A_R(\gamma_r,M_o(\gamma_0),M_o(\gamma_1)) \\
@@ -1063,21 +1078,25 @@ M_r : \forall \gamma_0, \gamma_1 \in \Gamma_O, \; \forall \gamma_r \in \Gamma_R(
 \subsubsection{A Small, Discrete, Proof Irrelevant Universe}
 
 In order to recover standard parametricity results like the free
-theorems from Wadler \cite{Wadler}, Atkey et. al define a universe $U
+theorems from Wadler \cite{Wadler}, Atkey et. al define a universe $\U
 \in \TyF \Gamma$ to connect the relations of the reflexive graphs to
 the equality of their set of objects.
 
-In particular for each $A \in \TmF \Gamma U$ we get a type $\El A \in
-\TyF \Gamma$ such that for all we have that $(\El A)_O$ is a family of
+In particular for each $A \in \TmF \Gamma \U$ we get a type $\El A \in
+\TyF \Gamma$ such that $(\El A)_O$ is a family of
 small sets, $(\El A)_R$ is a family of proof irrelevant relations, and
 for all $\gamma \in \Gamma_O$ we have that $(\El A)_R(\Gamma_{refl}(\gamma))$
 is the equality relation of $(\El A)_O(\gamma)$.
 Where the latter two requirements are to be considered up to isomorphism.
+\begin{gather*}
+U_O(\gamma) = \{(A_O,A_R) \mid A ≅ {(a_0,a_1,\tilde{a}) \mid \tilde{a} \in A_R(a_0,a_1)}, A_O \mbox{and} A_R \mbox{small} A_R \mbox{proof irrelevant}\}
+U_R(\gamma_r)(A,B) = \{R : A_O -> B_O -> Set \mid R \mbox{small and proof-irrelevant}\}
+\end{gather*}
 
-One main feature of $U$ is exemplified by considering a term $M \in
+One main feature of $\U$ is exemplified by considering a term $M \in
 \TmF{\Gamma.A}{(\El B)\{\tfst\}}$ where $A \in \TyF \Gamma$ and $B \in
-\TmF \Gamma U$, i.e. where the type of the result is in the universe
-and doesn't depend on $A$.
+\TmF \Gamma \U$, i.e. where the type of the result is in the universe
+and does not depend on $A$.
 Unfolding the application of $\tfst$ and unpacking the environment for $\Gamma.A$ we get the following for the components $M$,
 where the condition of commuting with reflexivity is between two elements of
 a proof-irrelevant relation, so can be omitted.
@@ -1091,27 +1110,27 @@ M_r &:& \forall \gamma_0, \gamma_1 \in \Gamma_O, \;
        & &(\El B)_R(\gamma_r, M_o(\gamma_0,a_0), M_o(\gamma_1,a_1))\\
 \end{array}
 \]
-We see that the result of $M_r$ doesn't mention $a_r$ because $\El B$ doesn't depend on $A$, moreover if
+We see that the result of $M_r$ does not mention $a_r$ because $\El B$ does not depend on $A$, moreover if
 we specialize $\gamma_r$ to $\Gamma_{refl}(\gamma)$ we get $(\El
 B)_R(\Gamma_{refl}(\gamma), M_o(\gamma,a_0), M_o(\gamma,a_1))$, which we
 know to be isomorphic to $M_o(\gamma,a_0) = M_o(\gamma,a_1)$ so we can conclude
 the following:
 \begin{gather*}
 \forall \gamma \in \Gamma_O, \;
-      \forall a_0, a_1 \in \Gamma_O, \;
+      \forall a_0, a_1 \in A_O(\gamma), \;
       \forall a_r \in \A_R(\Gamma_{refl}(\gamma),a_0,a_1), \; \\
         M_o(\gamma,a_0) = M_o(\gamma,a_1)
 \end{gather*}
 In other words, for a fixed $\gamma$, we have that $M_o$ considers any
 two related $a_i$ as being equal, since it returns the same result.
 
-The universe $U$ is shown to contain product and sum types, natural
+The universe $\U$ is shown to contain product and sum types, natural
 numbers, to be closed under $\Sigma$ types and to contain $\Pi (x :
 A). \El (B x)$ for any small type $A$.
 \mytodo{too imprecise? also assuming small sets are closed over similar stuff}
 
-%% Another important feature of $U$ corresponds to Reynolds' identity
-%% extension lemma. In fact a map like $T : U \to U$, which could
+%% Another important feature of $\U$ corresponds to Reynolds' identity
+%% extension lemma. In fact a map like $T : \U \to \U$, which could
 %% e.g. be a type constructor like |List|, has a relation component $T_r$
 %% which is equality preserving, bla blah
 
@@ -1128,8 +1147,7 @@ many steps of computation we have left:
 \Time_R(n,m) = \{ * \mid n \le m \}\\
 \Time_{refl}(n) = *\\
 \end{gather*}
-The terms for |0| and |↑| are then implemented by $0$ and $+1$ on the underlying naturals.
-\mytodo{max?}
+The terms for |0| and |↑| are then implemented by $0$ and $+1$ on the underlying naturals, and |⊔| by taking the maximum.
 
 The fixpoint operator |fix| and its uniqueness are then a simple matter of
 well-founded induction on the natural numbers.
@@ -1141,7 +1159,7 @@ from the environment, since they are all related, which justifies the isomorphis
 B ≅ \El B$ of our language.\mytodo{mention that Pi types are naturally isomorphic to open terms?}
 
 The relation between times |i ≤ j| is then intepreted by $\Le : \TyF
-(\Time.\Time\{\tfst\})$, which also fits in $U$ since it has no
+(\Time.\Time\{\tfst\})$, which also fits in $\U$ since it has no
 interesting inhabitants.
 \begin{gather*}
 \Le_O(n , m) = \{ * \mid n \le m \} \\
@@ -1159,59 +1177,62 @@ However we will show a connection with the standard $\Sigma$ type by
 first defining a general operation to convert any small reflexive
 graph into a discrete and proof-irrelevant one.
 
-Given a small $A \in \TyF \Gamma$ we define $\Tr A \in \TmF \Gamma U$
+Given a small $A \in \TyF \Gamma$ we define $\Tr A \in \TmF \Gamma \U$
 which we call the discrete truncation of $A$.
 
 We first give some preliminary definitions on reflexive graphs, and
 then lift those to the case of families to define $\Tr$.
-For a reflexive graph $A \in Obj(\CxtF)$ we define $A_O/A_R$ to be the
-set obtained by quotienting $A_O$ with the symmetric transitive closure of $A_R$ which we denote $A_R^*$.
+For a reflexive graph $A \in Obj(\CxtF)$ we define $\rt A$ to be the
+set obtained by quotienting $A_O$ with the symmetric transitive closure of $A_R$ which we denote $A_R^\st$.
+\begin{gather*}
+\rt A = A_O/(λ a_0~a_1.~ \exists \tilde{a}.~\tilde{a} \in A_R^\st(a_0,a_1))
+\end{gather*}
 Moreover we define $\LiftF_{A,B}(R)$ to lift a relation $R : A_O \to
-B_O \to Set$ to a relation $A_O/A_R \to B_O/B_R \to Set$, so that we have
+B_O \to Set$ to a relation $\rt A \to \rt B \to Set$, so that we have
 a function $\liftF_R : \forall a, b. \, R(a,b) →
 \LiftF_{(A,B)}(R)([a],[b])$.
 \begin{gather*}
 \begin{array}{l c l}
 \LiftF &:& \forall A, B \in Obj(\CxtF), \forall (R : A_O \to B_O \to Set),\\
-       & & A_O/A_R \to B_O/B_R \to Set \\
+       & &  \rt A \to \rt B \to Set \\
 \end{array}\\
 \LiftF_{(A,B)}(R : A_O \to B_O \to Set)([ a ],[ b ])\\
 \begin{array}{l c l c l}
-  &=& \{ (a',\tilde{a} ,b',\tilde{b},r) &\mid& a' \in A_O, \tilde{a} \in A_R^*(a,a'),\\
-  & & & &b' \in B_O, \tilde{b} \in B_R^*(b,b'),\\
+  &=& \{ (a',\tilde{a} ,b',\tilde{b},r) &\mid& a' \in A_O, \tilde{a} \in A_R^\st(a,a'),\\
+  & & & &b' \in B_O, \tilde{b} \in B_R^\st(b,b'),\\
   & & & &r \in R(a',b') \}/\top\\
 \end{array}
 %% \LiftF_{(A,B)}(R : A_O \to B_O \to Set)(qa,qb) = \{ * \mid ∃ a. a \in [qa], ∃ b. b \in [qb], R(a,b) \} \\
 %% \mbox{alternatively (by definition on the representatives)}\\
-%% \LiftF_{(A,B)}(R : A_O \to B_O \to Set)([ a ],[ b ]) = \{ * \mid ∃ a'. A_R^*(a,a'), ∃ b'. B_R^*(b,b'), R(a',b') \} \\
+%% \LiftF_{(A,B)}(R : A_O \to B_O \to Set)([ a ],[ b ]) = \{ * \mid ∃ a'. A_R^\st(a,a'), ∃ b'. B_R^\st(b,b'), R(a',b') \} \\
 \end{gather*}
 Picking the representatives $a$ and $b$ is justified because we
-produce loically equivalent relations for related elements.
+produce logically equivalent relations for related elements.
 We have that $\LiftF_{A,B}(R)$ is proof irrelevant by construction
 since we define it as a quotient with the total relation which we name $\top$,
 moreover $\LiftF_{(A,A)}(A_R)(q_0,q_1)$ is logically equivalent to $q_0
-=_{A_O/A_R} q_1$.
+=_{\rt A} q_1$.
 
 \mytodo{prove? could be lifted from Uday Reddy}
 
 Finally we use the definitions above to define $\Tr A$ for a given $A \in Ty(\Gamma)$:
 \begin{gather*}
-(\Tr A) : \TmF \Gamma U\\
-(\Tr A)_o(\gamma) = (A_O(\gamma)/A_r(\Gamma_{refl}(\gamma)),  \LiftF(A_r(\Gamma_{refl}(\gamma)))) \\
+(\Tr A) : \TmF \Gamma \U\\
+(\Tr A)_o(\gamma) = (A_O(\gamma)/^\st A_r(\Gamma_{refl}(\gamma)),  \LiftF(A_r(\Gamma_{refl}(\gamma)))) \\
 (\Tr A)_r(\gamma_r) = \LiftF(A_r(\gamma_r))
 \end{gather*}
 we have to show that $(\Tr A)_o$ and $(\Tr A)_r$ commute with reflexivity,
 \begin{gather*}
-\forall \gamma, U_{refl}((\Tr A)_o(\gamma)) = (\Tr A)_r(\Gamma_{refl}(\gamma))
+\forall \gamma, \U_{refl}((\Tr A)_o(\gamma)) = (\Tr A)_r(\Gamma_{refl}(\gamma))
 \end{gather*}
-but $U_{refl}$ simply projects out the relation given as the second
+but $\U_{refl}$ simply projects out the relation given as the second
 component of the tuple, so both sides reduce to
 $\LiftF(A_r(\Gamma_{refl}(\gamma)))$ and we are done.
 
-Remark, for any $A \in \TmF \Gamma U$, the types $\El A$ and $\El (\Tr
-A)$ are equivalent. In fact $A_r(\Gamma_{refl}(\gamma)$ is already
+Remark, for any $A \in \TmF \Gamma \U$, the types $\El A$ and $\El (\Tr
+A)$ are equivalent. In fact $A_r(\Gamma_{refl}(\gamma))$ is already
 equivalent to equality for $A_O(\gamma)$ so the quotient
-$A_O(\gamma)/A_r(\Gamma_{refl}(\gamma))$ is equivalent to
+$A_O(\gamma)/^\st A_r(\Gamma_{refl}(\gamma))$ is equivalent to
 $A_O(\gamma)$, and for the same reason $\LiftF(A_r(\gamma_r))$ is
 equivalent to $A_r(\gamma_r)$.
 
@@ -1223,7 +1244,7 @@ A$; the former sends an element of $A$ to its equivalence class:
 \tr_r(a_r) = \liftF(a_r)
 \end{gather*}
 We then have dependent elimination of $\Tr A$ into other types $B \in
-\TmF {\Gamma.\El (\Tr A)} {U}$ that live in the universe.
+\TmF {\Gamma.\El (\Tr A)} {\U}$ that live in the universe.
 Given a $t \in \TmF {\Gamma.A} {\El B\{\tfst,\tr\}}$ we define $\elim$:
 \begin{gather*}
 \elim : \TmF {\Gamma.\El (\Tr A)} {\El B}\\
@@ -1256,13 +1277,17 @@ t_o(\gamma,a_1)$; but this follows directly from the observation about $t_r$
 
 In the case of $\elim_r$ we already know that we will produce the same
 result for different representatives, because of proof-irrelevance,
-but it is less obvious that it belongs in $(\El B)_R(\gamma_r,[
-(a',\tilde{a},b',\tilde{b},r) ]), t_o(\gamma_0,a), t_o(\gamma_1,b))$. We know
-that $t_r(\gamma_r,r) \in (\El B)_R(\gamma_r,\liftF(r)),
-t_o(\gamma_0,a'), t_o(\gamma_1,b'))$, and from the observation about
-$t_r$ we know that $t_o(\gamma_0,a) = t_o(\gamma_0,a')$ and
-$t_o(\gamma_0,b) = t_o(\gamma_0,b')$, so also have $t_r(\gamma_r,r)
-\in (\El B)_R(\gamma_r,\liftF(r)), t_o(\gamma_0,a), t_o(\gamma_1,b))$,
+but it is less obvious that it belongs in
+\[ (\El B)_R(\gamma_r,[
+(a',\tilde{a},b',\tilde{b},r) ]), t_o(\gamma_0,a), t_o(\gamma_1,b)).
+\]
+We know that
+\[ t_r(\gamma_r,r) \in (\El B)_R(\gamma_r,\liftF(r)),
+t_o(\gamma_0,a'), t_o(\gamma_1,b')) \]
+and from the observation about $t_r$ we know that
+\[ t_o(\gamma_0,a) = t_o(\gamma_0,a')\] and
+\[t_o(\gamma_0,b) = t_o(\gamma_0,b')\] so we also have \[ t_r(\gamma_r,r)
+\in (\El B)_R(\gamma_r,\liftF(r)), t_o(\gamma_0,a), t_o(\gamma_1,b))\]
 and since $\liftF(r) = [ (a',\tilde{a},b',\tilde{b},r) ]$ by proof-irrelevance,
 we obtain the result we wanted.
 
@@ -1276,7 +1301,7 @@ followed by $\tr$, while the case expression is interpreted as $\elim$
 combined with the projrections of $\Sigma$.
 
 More generally we could consider $∃ (x : A) . B = \Tr (\Sigma x :
-A. B)$. If both $A$ and $B$ belong in $U$ then $∃ (x : A) . B$ is
+A. B)$. If both $A$ and $B$ belong in $\U$ then $∃ (x : A) . B$ is
 equivalent to $\Sigma (x : A) . B$, which reproduces the standard
 result about recovering strong sums from weak ones by parametricity.
 
@@ -1319,8 +1344,6 @@ type theory, which is a good technical reason to use clocks instead}
 %%   - try to define a universe ala induction-recursion. ala guardedness-preserving, see release notes.
 %%   - apparently we can do nested/mixed recursion, see CatSZ.agda
 
-\mytodo{underline where the sized-types notation helps consistently}
-
 \appendix
 \section{Appendix Title}
 
@@ -1336,14 +1359,7 @@ Acknowledgments, if needed.
 
 % The bibliography should be embedded for final submission.
 
-\begin{thebibliography}{}
-\softraggedright
-
-\bibitem[Smith et~al.(2009)Smith, Jones]{smith02}
-P. Q. Smith, and X. Y. Jones. ...reference text...
-
-\end{thebibliography}
-
+\bibliography{icfp}
 
 \end{document}
 
