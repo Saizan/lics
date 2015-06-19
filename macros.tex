@@ -89,7 +89,6 @@
 \newcommand{\update}[3]{#1[#2 \mapsto #3]}
 %\newcommand{\update}[3]{#1,#2 \is #3}
 
-
 % The calculus
 \newcommand{\lambdalater}{\ensuremath{\lambda^{\tlater}}}
 
@@ -115,15 +114,21 @@
 \newcommand{\Time}{\ensuremath{\mathsf{Time}}}
 \newcommand{\pack}[2]{({#1} , {#2})}
 \newcommand{\up}{\ensuremath{\uparrow}}
-\newcommand{\trib}{\blacklozenge}
-\newcommand{\trit}{\blacksquare}
 
+\newcommand{\flater}{\ensuremath{\square}}
+\newcommand{\flatercode}{\ensuremath{\hat{\flater}}}
+\newcommand{\elater}{\Diamond}
+\newcommand{\elatercode}{\ensuremath{\hat{\diamond}}}
+
+\newcommand{\trib}{\elater}
+\newcommand{\trit}{\flater}
 %% \newcommand{\trib}{\blacktriangleright_\bot}
 %% \newcommand{\trit}{\blacktriangleright_\top}
 \newcommand{\ta}{\ensuremath{\AgdaBound{a}}}
 \newcommand{\tb}{\ensuremath{\AgdaBound{b}}}
 \newcommand{\tc}{\ensuremath{\AgdaBound{c}}}
 \newcommand{\later}{\mathord{\blacktriangleright}\,}
+
 \newcommand{\tlater}{\mathord{\blacktriangleright}}
 %\newcommand{\sem}[1]{\mathrel{\den{#1}}}
 \newcommand{\semto}{\mathrel{\den{\to}}}

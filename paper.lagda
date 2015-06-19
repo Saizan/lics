@@ -81,7 +81,7 @@
 %format uk = "\!^\kappa"
 %format k = "\kappa"
 %format k' = "\kappa^\prime"
-%format fixb = fix "_\blacklozenge"
+%format fixb = fix "_\elater"
 %format star = "\star"
 %format stari = "\star_i"
 %format starj = "\star_j"
@@ -98,10 +98,10 @@
 %format <*>>! = <*> "^\Pi_i"
 %format uj = "^j"
 %format ui = "^i"
-%format guardb = guard "_\blacklozenge"
-%format forceb = force "_\blacklozenge"
-%format guardt = guard "_\blacksquare"
-%format forcet = force "_\blacksquare"
+%format guardb = guard "_\elater"
+%format forceb = force "_\elater"
+%format guardt = guard "_\flater"
+%format forcet = force "_\flater"
 %%format hk = "\!\![\kappa]"
 %format hk = "\!"
 %%format <= = "\le"
@@ -111,18 +111,18 @@
 %format e0 = e "_0"
 %format e1 = e "_1"
 %format e2 = e "_2"
-%format Fixb = Fix "_\blacklozenge"
-%format Fixt = Fix "_\blacksquare"
-%format wtribi = "\lozenge^i"
-%format wtriti = "\square^i"
-%format mutri = "\mu^\trib"
+%format Fixb = Fix "_\elater"
+%format Fixt = Fix "_\flater"
+%format wtribi = "\elatercode^i"
+%format wtriti = "\flatercode^i"
+%format mutri = "\mu^\elater"
 %format mu = "\mu"
-%format nutri = "\nu^\trit"
+%format nutri = "\nu^\flater"
 %format nu = "\nu"
-%format foldtri = fold "^\trib"
-%format ut = "\!^\trib"
-%format catt = cat "^\trit"
-%format catb = cat "^\trib"
+%format foldtri = fold "^\elater"
+%format ut = "\!^\elater"
+%format catt = cat "^\flater"
+%format catb = cat "^\elater"
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1374,7 +1374,7 @@ information, e.g. guarded streams of natural numbers correspond to the functor
 \mathsf{Stream}(n) = ℕ^{n+1}
 \]
 where the action on morphisms, so-called restriction map, sends $\mathsf{Stream}(n+1)$ to
-$\mathsf{Stream}(n)$ by discarding the last element.
+$\mathsf{Stream}(n)$ by discarding the last element. %% TODO last element? restriction map?
 Our |trib| modality however would not fit in such a model because
 there is no map $(\trib A)(1) \to (\trib A)(0)$ in general: $(\trib
 A)(0)$ is an empty set, since there are no future times, while
@@ -1391,7 +1391,7 @@ pure  : ∀ i . (A i → ∀ j < i. A j)
 for arbitrary types |A| and |B|. This is also the case for the system
 in \cite{Krishnaswami13:simple-frp} where the Nakano modality is used to control the
 resource usage of funtional reactive programs. The lack of |pure| does
-not seem to cause expressivity problems in practice, and |pure| can be
+not seem to cause expressivity problems with regard to the examples in \cite{atkeyMcBride:icfp13}, and |pure| can be
 implemented explicitly for those types that would support restriction
 maps.
 
