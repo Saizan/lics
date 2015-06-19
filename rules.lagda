@@ -4,10 +4,10 @@
 \and \inferrule{|Γ ⊢ A : Type| \\ |Γ , x : A ⊢ B : Type|}{|Γ ⊢ Σ (x : A). B : Type|}
 \and \inferrule{|Γ ⊢ A : Type| \\ |Γ ⊢ B : Type|}{|Γ ⊢ A + B : Type|}
 \and \inferrule{|Γ ⊢ A : Type| \\ |Γ ⊢ B : Type|}{|Γ ⊢ A × B : Type|}
-\and \inferrule{|X = ⊥ , ⊤ , Bool|}{|Γ ⊢ X : Type|}
+\and \inferrule{|Γ ⊢| \\ |X = ⊥ , ⊤ , Bool|}{|Γ ⊢ X : Type|}
 
 %% Universe
-\and \inferrule{ }{|Γ ⊢ U : Type|}
+\and \inferrule{|Γ ⊢|}{|Γ ⊢ U : Type|}
 \and \inferrule{|Γ ⊢ u : U|}{|Γ ⊢ El u : Type|}
 %%\mytodo{add terms? e.g. lambda/case/constructor/..}
 \end{mathpar}
@@ -60,7 +60,7 @@ guardt f = λ i j -> f j
 \and \inferrule{|Γ ⊢ A : U| \\ |Γ , x : A ⊢ B : U|}{|Γ ⊢ Σ (x : A). B : U|}
 \and \inferrule{|Γ ⊢ A : U| \\ |Γ ⊢ B : U|}{|Γ ⊢ A + B : U|}
 \and \inferrule{|Γ ⊢ A : U| \\ |Γ ⊢ B : U|}{|Γ ⊢ A × B : U|}
-\and \inferrule{| X = ⊥ , ⊤ , Bool |}{|Γ ⊢ X : U|}
+\and \inferrule{|Γ ⊢| \\ | X = ⊥ , ⊤ , Bool |}{|Γ ⊢ X : U|}
 
 %%\mytodo{maybe too boring to repeat all this for U? in the end it only lacks a code for |Time| and doesn't contain an universe itself}
 \end{mathpar}
@@ -75,7 +75,7 @@ guardt f = λ i j -> f j
 |∀ i . El A| &≅ |El A| & |i ∉ fv(A)| \\
 |∀ i . El (A(i))| &≅ |∀ i. ∀ (j < i). El (A(j))| & (|guardt| , |forcet|) \\
 |(∀ i. A) + (∀ i. B)| &≅ |∀ i. (A + B)| \\
-|∀ i. Σ (x : El A). B| &≅ |Σ (x : El A). ∀ i . B| & |i ∉ A|\\
+|∀ i. Σ (x : El A). B| &≅ |Σ (x : El A). ∀ i . B| & |i ∉ fv(A)|\\
 \\
 |∃ i . El A| &≅ |El A| & |i ∉ fv(A)| \\
 |∃ i . A(i)| &≅ |∃ i. ∃ (j < i). A(j)| & (|guardb| , |forceb|) \\
