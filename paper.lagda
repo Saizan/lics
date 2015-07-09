@@ -1125,9 +1125,9 @@ One main feature of $\U$ is exemplified by considering a term $M \in
 \TmF{\Gamma.A}{(\El B)\{\tfst\}}$ where $A \in \TyF \Gamma$ and $B \in
 \TmF \Gamma \U$, i.e. where the type of the result is in the universe
 and does not depend on $A$.
-Unfolding the application of $\tfst$ and unpacking the environment for $\Gamma.A$ we get the following for the components $M$,
-where the condition of commuting with reflexivity is between two elements of
-a proof-irrelevant relation, so can be omitted.
+Unfolding the application of $\tfst$ and unpacking the environment for $\Gamma.A$ we get the following for the components of $M$.
+The condition of commuting with reflexivity is between two elements of
+a proof-irrelevant relation, so can be omitted. %% TODO the condition of commuting?
 \[
 \begin{array}{l c l}
 M_o &:& \forall \gamma \in \Gamma_O, \; \forall a \in A_O(\gamma), \; (\El B)_O(\gamma) \\
@@ -1180,7 +1180,7 @@ going to produce the same result no matter what natural number it gets
 from the environment, since they are all related, which justifies the isomorphism $∀ i. \El
 B ≅ \El B$ of the language.\mytodo{mention that Pi types are naturally isomorphic to open terms?}
 
-The relation between times |i ≤ j| is intepreted by\\ $\Le \in \TyF
+The relation between times |i ≤ j| is intepreted by\\ $\Le \,\, \in \TyF
 {\Time.\Time\{\tfst\}}$, which also fits in $\U$ since it has no
 interesting inhabitants.
 \begin{gather*}
@@ -1242,8 +1242,8 @@ and that $\LiftF_{(A,A)}(A_R)$ is logically equivalent to the equality relation 
 Finally we define $\Tr A$ for a given $A \in Ty(\Gamma)$:
 \begin{gather*}
 (\Tr A) : \TmF \Gamma \U\\
-(\Tr A)_o(\gamma) = (A_O(\gamma)/^\st A_r(\Gamma_{refl}(\gamma)),  \LiftF(A_r(\Gamma_{refl}(\gamma)))) \\
-(\Tr A)_r(\gamma_r) = \LiftF(A_r(\gamma_r))
+(\Tr A)_o(\gamma) = (A_O(\gamma)/^\st A_R(\Gamma_{refl}(\gamma)),  \LiftF(A_R(\Gamma_{refl}(\gamma)))) \\
+(\Tr A)_r(\gamma_r) = \LiftF(A_R(\gamma_r))
 \end{gather*}
 we have to show that $(\Tr A)_o$ and $(\Tr A)_r$ commute with reflexivity,
 \begin{gather*}
@@ -1261,12 +1261,12 @@ $A_O(\gamma)$, and for the same reason $\LiftF(A_r(\gamma_r))$ is
 equivalent to $A_r(\gamma_r)$.
 
 The next step is to define an introduction and an eliminator for $\Tr
-A$; the former sends an element of $A$ to its equivalence class:
+A$; the introduction sends an element of $A$ to its equivalence class:
 \begin{gather*}
 \begin{array}{l c l}
-\multicolumn{3}{l}{\tr : \TmF {A} {\El (\Tr A)}}  \\
-\tr_o(a) &=& [ a ]\\
-\tr_r(a_r) &=& \liftF(a_r)
+\multicolumn{3}{l}{\tr : \TmF {\Gamma.A} {\El (\Tr A)\{\tfst\}}}  \\
+\tr_o(\_,a)   &=& [ a ]\\
+\tr_r(\_,a_r) &=& \liftF(a_r)
 \end{array}
 \end{gather*}
 We then have dependent elimination of $\Tr A$ into other types $B \in
@@ -1294,7 +1294,7 @@ First we show that $t_r$ guarantees that $t_o$ respects $A_R(\Gamma_{refl}(\gamm
 we unfold the type of $t_r$,
 \[
 \begin{array}{l c l}
-t_r &:& \forall \gamma_0, \gamma_1 \in \Gamma_O, \; \gamma_r \in \Gamma_R(\gamma_1,\Gamma_2), \;\\
+t_r &:& \forall \gamma_0, \gamma_1 \in \Gamma_O, \; \gamma_r \in \Gamma_R(\gamma_0,\gamma_1), \;\\
     & & \forall a_0 \in A_O(\gamma_0), a_1 \in A_O(\gamma_1), a_r \in A_R(\gamma_r,a_0,a_1),\; \\
     & & (\El B)_R((\gamma_r,\tr_r(a_r)), t_o(\gamma_0,a_0), t_o(\gamma_1,a_1))
 \end{array}
