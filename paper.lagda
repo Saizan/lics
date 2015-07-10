@@ -20,7 +20,7 @@
 %-----------------------------------------------------------------------------
 
 %\nonstopmode
-\documentclass[natbib,authoryear,fleqn]{sigplanconf}
+\documentclass[natbib,authoryear,fleqn,preprint]{sigplanconf}
 % The following \documentclass options may be useful:
 
 % preprint      Remove this option only once the paper is in final form.
@@ -50,13 +50,14 @@
 % Constructors.
 
 \newcommand{\constructor}[1]{\textsf{#1}}
-%format fixlt = fix "_\trit"
+%format fixlt = "\tfix_\trit"
 %format λ   = "\lambda"
 %format .   = "\!."
 %format not = "\Varid{not}"
 %format ==  = "{==}"
 %%format <=  = "{<=}"
-%%%format -> = "→"
+%%%%format -> = "\to"
+%format U = "\U{}"
 %format →   = "\mathrel{→}"
 %format sp  = "\mkern-2mu"
 %format : = "\!\!:\!"
@@ -81,7 +82,7 @@
 %format uk = "\!^\kappa"
 %format k = "\kappa"
 %format k' = "\kappa^\prime"
-%format fixb = fix "_\elater"
+%format fixb = "\tfix_\elater"
 %format star = "\star"
 %format stari = "\star_i"
 %format starj = "\star_j"
@@ -98,10 +99,15 @@
 %format <*>>! = <*> "^\Pi_i"
 %format uj = "^j"
 %format ui = "^i"
-%format guardb = guard "_\elater"
-%format forceb = force "_\elater"
-%format guardt = guard "_\flater"
-%format forcet = force "_\flater"
+%format guardb = "\mathsf{guard}_\elater"
+%format forceb = "\mathsf{force}_\elater"
+%format guardt = "\mathsf{guard}_\flater"
+%format forcet = "\mathsf{force}_\flater"
+%format uncurry = "\mathsf{uncurry}"
+%format case = "\mathsf{case}"
+%format of = "\mathsf{of}"
+%format El = "\El"
+%format ∃ = "\mathsf{\exists}"
 %%format hk = "\!\![\kappa]"
 %format hk = "\!"
 %%format <= = "\le"
@@ -111,8 +117,9 @@
 %format e0 = e "_0"
 %format e1 = e "_1"
 %format e2 = e "_2"
-%format Fixb = Fix "_\elater"
-%format Fixt = Fix "_\flater"
+%format Fixb = "\mathsf{Fix}_\elater"
+%format Fixt = "\mathsf{Fix}_\flater"
+%format indNat ="\mathsf{indNat}"
 %format wtribi = "\elatercode^i"
 %format wtriti = "\flatercode^i"
 %format mutri = "\mu^\elater"
@@ -121,8 +128,35 @@
 %format nu = "\nu"
 %format foldtri = fold "^\elater"
 %format ut = "\!^\elater"
-%format catt = cat "^\flater"
-%format catb = cat "^\elater"
+%format cat = "\mathsf{cat}"
+%format cat' = "\mathsf{cat^\prime}"
+%format catt = "\mathsf{cat}^\flater"
+%format catb = "\mathsf{cat}^\elater"
+%format Time = "\Time"
+%format extract = "\mathsf{extract}"
+%format Nat = "\mathsf{Nat}"
+%format Zero = "\mathsf{Zero}"
+%format Suc = "\mathsf{Suc}"
+%format inl = "\mathsf{inl}"
+%format inr = "\mathsf{inr}"
+%format tt = "\mathsf{tt}"
+%format fold = "\mathsf{fold}"
+%format List = "\mathsf{List}"
+%format downfrom = "\mathsf{downfrom}"
+%format unfold = "\mathsf{unfold}"
+%format RoseTree = "\mathsf{RoseTree}"
+%format Node = "\mathsf{Node}"
+%format mapRT = "\mathsf{mapRT}"
+%format map = "\mathsf{map}"
+%format mapmapRT = "\mathsf{mapmapRT}"
+%format fix = "\mathsf{fix}"
+%format Stream = "\mathsf{Stream}"
+%format cons = "\mathsf{cons}"
+%format ones = "\mathsf{ones}"
+%format pure = "\mathsf{pure}"
+%format knotinfvA = "\kappa \not\in \mathsf{fv}(A)"
+%format ⊤ = "\top"
+%format limit = "\mathsf{limit}"
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -150,11 +184,11 @@
 \setlength{\pdfpageheight}{\paperheight}
 \setlength{\pdfpagewidth}{\paperwidth}
 
-\conferenceinfo{ICFP '15}{September 1--3, 2015, Vancouver, British Columbia, Canada}
-\copyrightyear{2015}
+%%\conferenceinfo{ICFP '15}{September 1--3, 2015, Vancouver, British Columbia, Canada}
+%%\copyrightyear{2015}
 %% camera-ready data
-\copyrightdata{978-1-nnnn-nnnn-n/yy/mm}
-\doi{nnnnnnn.nnnnnnn}
+%%\copyrightdata{978-1-nnnn-nnnn-n/yy/mm}
+%%\doi{nnnnnnn.nnnnnnn}
 
 % Uncomment one of the following two, if you are not going for the
 % traditional copyright transfer agreement.
@@ -166,15 +200,16 @@
                                   % (paid open-access papers,
                                   % short abstracts)
 
-\titlebanner{banner above paper title}        % These are ignored unless
-\preprintfooter{short description of paper}   % 'preprint' option specified.
+%%\titlebanner{banner above paper title}        % These are ignored unless
+%%\preprintfooter{short description of paper}   % 'preprint' option specified.
 
 \title{Total (Co)Programming with Guarded Recursion}
 %%\subtitle{Subtitle Text, if any}
+\authorinfo{}{}{}
 
-\authorinfo{Andrea Vezzosi}
-           {Chalmers Univerisity of Technology}
-           {vezzosi@@chalmers.se}
+%% \authorinfo{Andrea Vezzosi}
+%%            {Chalmers Univerisity of Technology}
+%%            {vezzosi@@chalmers.se}
 %% \authorinfo{Name2\and Name3}
 %%            {Affiliation2/3}
 %%            {Email2/3}
@@ -209,15 +244,15 @@ types.
 
 \end{abstract}
 
-\category{CR-number}{subcategory}{third-level}
+\category{F.3.3}{Logics and Meanings of Programs}{Studies of Program Constructs}
 
 % general terms are not compulsory anymore,
 % you may leave them out
-\terms
-term1, term2
+%\terms
+%term1, term2
 
 \keywords
-keyword1, keyword2
+Dependent Type Theory, Guarded Recursion, Induction, Coinduction, Type-based termination
 
 \section{Introduction}
 
@@ -246,7 +281,8 @@ a mapping function for rose trees is an example of this.
 data RoseTree A = Node A (List (RoseTree A))
 
 mapRT : (A → B) → RoseTree A → RoseTree B
-mapRT f (Node a ts) = Node (f a) (map (\ t -> mapRT f t) ts)
+mapRT f (Node a ts)
+  = Node (f a) (map (\ t . mapRT f t) ts)
 \end{code}
 The definition of mapRT is not accepted because syntactically |t| has
 no relation to |Node a ts|, we need to pay attention to the semantics of
@@ -256,8 +292,8 @@ workaround is to essentially inline the code for |map|\footnote{If the definitio
 mapRT : (A → B) → RoseTree A → RoseTree B
 mapRT f (Node a ts) = Node (f a) (mapmapRT f ts)
   where
-    mapmapRT f []        = []
-    mapmapRT f (t ∷ ts)  = mapRT f t ∷ mapmapRT f ts
+   mapmapRT f []        = []
+   mapmapRT f (t ∷ ts)  = mapRT f t ∷ mapmapRT f ts
 \end{code}
 Here we have spelled out the nested recursion as a function
 |mapmapRT|, and the checker can figure out that |mapRT| is only going
@@ -291,16 +327,16 @@ and recursion with a single guarded fixed point combinator.
 We make the following contributions:
 \begin{itemize}
 \item We define a core type system which supports total programming by
-  combining guarded recursion, existential and universal clock
+  combining guarded recursion, existential and universal \Time{}
   quantification and a new delay modality. From these primitives we
   can derive both (finitely branching) initial algebras and final
   coalgebras, i.e. inductive and coinductive datatypes. The type
   system is an extension of Martin-L\"{o}f Type Theory.
 \item We give an interpretation of the system into a relationally
-  parametric model of dependent type theory \cite{atkey:param},
-  drawing a parallel between clock quantification and parametric
+  parametric model of dependent type theory in reflexive graphs \cite{atkey:param},
+  drawing a parallel between \Time{} quantification and parametric
   polymorphism.
-\item In particular we show how existential types supporting
+\item In particular we show how existential \Time{} quantification supporting
   representation independence can be defined in a predicative system
   by truncating $\Sigma-$types to the universe of discrete reflexive
   graphs.
@@ -321,7 +357,7 @@ root, and we will be able to keep track of which recursive calls are valid.
 Once we've done that we can write |mapRT| by reusing |map|.
 \begin{code}
 mapRT : (A → B) → RoseTree A → RoseTree B
-mapRT f (Node a ts) = Node a (map (\ t -> mapRT ut f t) ts)
+mapRT f (Node a ts) = Node a (map (\ t . mapRT ut f t) ts)
 \end{code}
 Here the call |mapRT ut| stands for an implicit use of a guarded
 fixpoint combinator we will introduce in Section \ref{fixb}, so it gets
@@ -421,7 +457,7 @@ we do not support |pure| in general, e.g. not at type |tribk A|,
 but we do for those types that do not mention |k|:
 \[
 \begin{array}{l r}
-|pure : ∀ k . A -> tritk A| & \quad\quad |k ∉ fv(A)|
+|pure : ∀ k . A -> tritk A| & \quad\quad |knotinfvA|
 \end{array}
 \]
 In the language of Section \ref{sec:lang} such an operation will be
@@ -435,7 +471,7 @@ If we have a function at any time in the future |tritk (A -> B)| and
 an argument at some time in the future |tribk A|, we can apply one to the other with the combinator
 |star|,
 \begin{code}
-star : ∀ k . tritk (A hk -> B hk) -> tribk A hk -> tribk B hk
+star : ∀ k . tritk (A -> B) -> tribk A hk -> tribk B hk
 \end{code}
 which in particular can be used to define |fixb| in terms of
 |fix|
@@ -446,7 +482,7 @@ fixb f = fix (λ k r . f k (λ x . r stark x))
 Lastly, as a dual of |pure|, we have |extract|,
 \[
 \begin{array}{l r}
-|extract : ∀ k . tribk A -> A| & \quad\quad |k ∉ fv(A)|
+\mathsf{extract} : \forall \kappa .~ \elater^\kappa A \to A & \quad\quad |knotinfvA|
 \end{array}
 \]
 which allows to get values out of the |tribk| modality as long as their
@@ -489,8 +525,8 @@ Suc   : ∀ k . tribk Nat uk -> Nat uk
 downfrom : ∀ k . Nat uk → List (∃ k . Nat uk)
 downfrom =
   unfold   (λ k n ->   case n of
-                                         Zero    -> Left _
-                                         Suc n'  -> Right ((pack(k)(n)) , n'))
+                                         Zero    -> inl _
+                                         Suc n'  -> inr ((pack(k)(n)) , n'))
 \end{code}
 The existential quantification allows us to forget the time
 information of the naturals in the list, so that we do not have to keep
@@ -585,8 +621,8 @@ So the same clock variable represents different time values in different parts o
 %%analogy is Haskell's |Reader| monad: a clock variable looks up the current value in the
 %%environment, while |tritk| and |tribk| locally override it with a smaller one.
 
-To clarify the flow of |Time| we adopt a syntax inspired by Sized
-Types \cite{Andreas} instead. It will also offer more flexibility in
+To clarify the flow of |Time| we instead adopt a syntax inspired by Sized
+Types \cite{Andreas}. It will also offer more flexibility in
 the dependent case. In fact the first step is to add to the dependently
 typed language of Figure \ref{fig:TT} a new type |Time|, together with inequality
 |(i j : Time) ⊢ i ≤ j|, zero |0 : Time|, successor |↑ : Time -> Time| and a maximum operator |⊔ : Time -> Time -> Time|
@@ -599,9 +635,9 @@ Time) -> (j : Time) -> ↑ j ≤ i -> Nat uj|, where the smaller time |j|
 is explicitly mentioned and passed as the time parameter of the
 guarded natural numbers type.
 
-In the following we use the shorthand |∀ i . A| in place of |(i :
-Time) -> A| and |∀ j < i . A| in place of |(j : Time) -> ↑ j ≤ i ->
-A|, and so we also omit the inequality proof in abstractions and
+In the following we use the shorthand $∀ i .~A$ in place of $(i :
+\Time) \to A$ and $∀ j < i .~A$ in place of $(j : \Time) \to~↑ j \leq i \to
+A$, and so we also omit the inequality proof in abstractions and
 applications, writing |λ j| in place of |λ j (p : ↑ j ≤ i)| and |f j|
 in place of |f j p|.
 
@@ -680,10 +716,10 @@ language. The isomorphisms of Figure \ref{fig:isos} describe how the
 equational theory.
 We take as example the pair of |guardb| and |forceb|:
 \begin{code}
-guardb : (∃ i . A(i)) -> ∃ i . ∃ (j < i). A(j)
+guardb : (∃ i . A i) -> ∃ i . ∃ (j < i). A j
 guardb (pack i a) = (pack (↑ i) (pack i a))
 
-forceb : (∃ i . ∃ (j < i). A(j)) → ∃ i . A(i)
+forceb : (∃ i . ∃ (j < i). A j) → ∃ i . A i
 forceb (pack i (pack j a)) = (pack j a)
 \end{code}
 the $\beta$ and $\eta$ rules for |∃ i| are not enough to show that they are an isomorphism,
@@ -702,7 +738,7 @@ can be implemented for dependent functions:
 
 \begin{align*}
 |∀ i. A × B |\, &|≅|\, |∀ i. A × ∀ i. B| \\
-|∀ i. (x : A) → B|\, &|≅|\, |(x : A) → ∀ i . B| & |i ∉ fv(A)|\\
+|∀ i. (x : A) → B|\, &|≅|\, |(x : A) → ∀ i . B| & i \not\in \mathsf{fv}(A)\\
 |∀ i. ∀ j. A|\, &|≅|\, |∀ j. ∀ i. A|\\
 \end{align*}
 
@@ -711,12 +747,12 @@ The limitation to only finite |El A| in the isomorphism
 ∃ i . (x : El A) -> ∃ (j < i). B ≅ (x : El A) → ∃ j . B
 \end{code}
 is because, to go from right to left, we need to find a |i| which is
-an upper bound for all the |j|s returned by the function |(x : El A) →
-∃ j . B| across the whole domain |El A|. However given only |⊔| we can
+an upper bound for all the |j|s returned by the function $(x : \El~A) \to
+∃ j .~B$ across the whole domain $\El~A$. However given only |⊔| we can
 only compute the upper bound of finitely many time values.  We did not
-introduce a |limit : (A -> Time) -> Time| operator because |A| might
+introduce a $\mathsf{limit} : (A \to \Time) \to \Time$ operator because |A| might
 contain |Time| itself, and that would have led to impredicativity
-issues in the model of Section \ref{sec:model}. We plan to lift this
+issues in the model of Section \ref{sec:model}\mytodo{more like size issues?}. We plan to lift this
 restriction in further work.
 
 %include rules.lagda
@@ -748,7 +784,7 @@ left, so there's no |j < i|, we already know that |∃ (j < i). A|
 is equivalent to |⊥| without having to know what |A| is, only if we
 actually have time to spare we will look into it.
 
-Given |wtribi| we can turn |F : U -> U| into |∀ i . (∀ (j < i). U) -> U| by
+Given |wtribi| we can turn $F : \U \to \U$ into $∀ i .~(∀~(j < i).~\U) \to \U$ by
 precomposition and define |Fixb| through |fix|, giving us the desired
 property.
 \begin{code}
@@ -782,7 +818,8 @@ the elimination rule of |∃ i|.
 
 \begin{code}
 indNat :  (P : Nat -> U)
-          -> P Zero -> (∀ n -> El (P n) -> El (P (Suc n)))
+          -> P Zero
+          -> (∀ n -> El (P n) -> El (P (Suc n)))
           -> (n : Nat) -> El (P n)
 indNat P z s (pack i n) =
   fix (\ i rec n ->  case n of
@@ -793,8 +830,8 @@ indNat P z s (pack i n) =
 \end{code}
 
 Reading carefully we see that |s (pack j n) (rec j n)| has type |El (P
-(Suc (pack j n)))| which we can reduce to |El (P (pack (↑ j) (inr
-(pack j n))))| while the expected type is |El (P (pack i (inr (pack j
+(Suc (pack j n)))| which we can reduce to $\El~(P~(↑ j, \mathsf{inr}~
+(j, n)))$ while the expected type is |El (P (pack i (inr (pack j
 n))))|.  We can however conclude that |(pack (↑ j) (inr (pack j n)))|
 and |(pack i (inr (pack j n)))| are equal since they both get sent to
 |(pack j n)| by the
@@ -854,7 +891,7 @@ F[trib A ]₀ (i , x) = F₀ (λ y. ∃ j < i. A y) x
 For each |X|-indexed functor |F| we obtain the initial algebra of
 |F[trib -]| by
 \begin{code}
-mutri F (i , x) = fix (\ i A x → F (\ y → ∃ (j < i) . A (j , x)) i x
+mutri F (i , x) = fix (\ i A x . F (\ y. ∃ (j < i) . A (j , x)) i x
 \end{code}
 so that |mutri F = F[trib mutri F]|.
 
@@ -864,7 +901,7 @@ and the morphism from any other algebra |f : F[trib A] ⇒ A| is also definable 
 \begin{code}
 foldtri :  (A : Time × X → U) ->
            (F[trib A] ⇒ A) → mutri F ⇒ A
-foldtri A f (i , x) = fix (\ i foldtri m → f (F (foldtri star) m)) i x
+foldtri A f (i , x) = fix (\ i foldtri m. f (F (foldtri star) m)) i x
 \end{code}
 
 \subsection{Initial Algebras}
@@ -915,14 +952,14 @@ The above result can be dualized to obtain final coalgebras of
 For each |X|-indexed functor |F| we obtain the final coalgebra of
 |F[trit -]| by
 \begin{code}
-nutri F (i , x) = fix (\ i A x → F (\ y → ∀ (j < i) . A (j , x)) i x
+nutri F (i , x) = fix (\ i A x. F (\ y. ∀ (j < i) . A (j , x)) i x
 \end{code}
 so that |nutri F = F[trit nutri F]|.
 
 Definition 2. Let |F| be an |X|-indexed functor, we say that |F|
 weakly commutes with |∀ i| if the canonical map
 \begin{code}
-(x : X)  → F (\ x' → ∀ i. A (i , x')) x
+(x : X)  → F (\ x'. ∀ i. A (i , x')) x
          → (∀ i . F [trit A] (i , x))
 \end{code}
 is an isomomorphism for every |A|.
@@ -995,7 +1032,7 @@ The basic principle is that types get modeled as a pair of a set of
 values and a relation over that set. The relation describes a property
 that has to be preserved when manipulating such values.
 
-To model our language we make use of the relationally parametric model of
+To model our language then we make use of the relationally parametric model of
 dependent type theory from \cite{atkey:param}, defining |Time| as the
 type of natural numbers related by |<=| and the universe |U| as
 small sets related by proof-irrelevant relations (their

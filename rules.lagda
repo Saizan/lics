@@ -1,14 +1,14 @@
 \begin{figure}
 \begin{mathpar}
-\inferrule{|Γ ⊢ A : Type| \\ |Γ , x : A ⊢ B : Type|}{|Γ ⊢ (x : A) -> B : Type|}
-\and \inferrule{|Γ ⊢ A : Type| \\ |Γ , x : A ⊢ B : Type|}{|Γ ⊢ Σ (x : A). B : Type|}
-\and \inferrule{|Γ ⊢ A : Type| \\ |Γ ⊢ B : Type|}{|Γ ⊢ A + B : Type|}
-\and \inferrule{|Γ ⊢ A : Type| \\ |Γ ⊢ B : Type|}{|Γ ⊢ A × B : Type|}
-\and \inferrule{|Γ ⊢| \\ |X = ⊥ , ⊤ , Bool|}{|Γ ⊢ X : Type|}
+\inferrule{Γ \vdash A :\Type \\ Γ ,\, x : A \vdash B :\Type}{Γ \vdash (x : A) \to B :\Type}
+\and \inferrule{Γ \vdash A :\Type \\ Γ ,\, x : A \vdash B :\Type}{Γ \vdash Σ (x : A). B :\Type}
+\and \inferrule{Γ \vdash A :\Type \\ Γ \vdash B :\Type}{Γ \vdash A + B :\Type}
+\and \inferrule{Γ \vdash A :\Type \\ Γ \vdash B :\Type}{Γ \vdash A × B :\Type}
+\and \inferrule{Γ \vdash \\ X = ⊥ , ⊤ , \Bool}{Γ \vdash X :\Type}
 
 %% Universe
-\and \inferrule{|Γ ⊢|}{|Γ ⊢ U : Type|}
-\and \inferrule{|Γ ⊢ u : U|}{|Γ ⊢ El u : Type|}
+\and \inferrule{Γ \vdash}{Γ \vdash \U :\Type}
+\and \inferrule{Γ \vdash u : \U}{Γ \vdash \El~u :\Type}
 %%\mytodo{add terms? e.g. lambda/case/constructor/..}
 \end{mathpar}
 \caption{Dependent Type Theory with a Universe}
@@ -18,15 +18,15 @@
 \begin{figure}
 \begin{mathpar}
 %% Time
-\inferrule{ }{|Γ ⊢ Time : Type|}
-\and \inferrule{ }{|Γ ⊢ 0 : Time|}
-\and \inferrule{|Γ ⊢ t : Time|}{|Γ ⊢ ↑ t : Time|}
-\and \inferrule{|Γ ⊢ t_0 : Time| \\ |Γ ⊢ t_1 : Time|}
-               {|Γ ⊢ t_0 ⊔ t_1 : Time|}
-\and \inferrule{|Γ ⊢ t_0 : Time| \\ |Γ ⊢ t_1 : Time|}
-               {|Γ ⊢ t_0 <= t_1 : Type|}
+\inferrule{ }{Γ \vdash \Time :\Type}
+\and \inferrule{ }{Γ \vdash 0 : \Time}
+\and \inferrule{Γ \vdash t : \Time}{Γ \vdash ↑ t : \Time}
+\and \inferrule{Γ \vdash t_0 : \Time \\ Γ \vdash t_1 : \Time}
+               {Γ \vdash t_0 ⊔ t_1 : \Time}
+\and \inferrule{Γ \vdash t_0 : \Time \\ Γ \vdash t_1 : \Time}
+               {Γ \vdash t_0 \leq t_1 :\Type}
 \end{mathpar}
-\caption{The |Time| type}
+\caption{The \Time{} type}
 \label{fig:Time}
 \end{figure}
 
@@ -34,17 +34,18 @@
 \begin{figure}
 \begin{mathpar}
 %% Fix
-\inferrule{|Γ , i : Time ⊢ A(i) : Type| \\
-                |Γ ⊢ f : ∀ i . (∀ j < i . A(j)) -> A(i)|}
-               {|Γ ⊢ fix f : ∀ i . A(i)|}
-\and \inferrule{|f i (guardt u i) = u i|}{|u i = fix f i|}
+\inferrule{\Gamma ,\,i : \Time \vdash A[i] : \Type \\
+           \Gamma \vdash f : \forall i .~(\forall j < i .~A[j]) \to A[i]}
+               {\Gamma \vdash \mathsf{fix}~f: \forall i . A[i]}
+\and \inferrule{f~i~(\mathsf{guard}_\flater~u~i) = u~i}{u~i = \tfix~f~i}
 \end{mathpar}
 where
-\begin{code}
-guardt : (∀ i. A(i)) -> ∀ i. ∀ j < i. A(j)
-guardt f = λ i j -> f j
-\end{code}
-
+\[
+\begin{array}{l}
+\mathsf{guard}_\flater : (∀ i.~A[i]) \to ∀ i.~∀ j < i.~A[j]\\
+\mathsf{guard}_\flater~f = λ i~j .~ f~j
+\end{array}
+\]
 \caption{Guarded Fixpoint}
 \label{fig:fix}
 \end{figure}
@@ -52,19 +53,19 @@ guardt f = λ i j -> f j
 \begin{figure}
 \begin{mathpar}
 %% Codes
-\inferrule{|Γ , i : Time ⊢ A : U|}{|Γ ⊢ ∀ i . A : U|}
-\and \inferrule{|Γ , i : Time ⊢ A : U|}{|Γ ⊢ ∃ i . A : U|}
-\and \inferrule{|Γ ⊢ t_0 : Time| \\ |Γ ⊢ t_1 : Time|}
-               {|Γ ⊢ t_0 <= t_1 : U|}
-\and \inferrule{|Γ ⊢ A : U| \\ |Γ , x : A ⊢ B : U|}{|Γ ⊢ (x : A) -> B : U|}
-\and \inferrule{|Γ ⊢ A : U| \\ |Γ , x : A ⊢ B : U|}{|Γ ⊢ Σ (x : A). B : U|}
-\and \inferrule{|Γ ⊢ A : U| \\ |Γ ⊢ B : U|}{|Γ ⊢ A + B : U|}
-\and \inferrule{|Γ ⊢ A : U| \\ |Γ ⊢ B : U|}{|Γ ⊢ A × B : U|}
-\and \inferrule{|Γ ⊢| \\ | X = ⊥ , ⊤ , Bool |}{|Γ ⊢ X : U|}
+\inferrule{Γ , i : \Time \vdash A : U}{Γ \vdash ∀ i . A : U}
+\and \inferrule{Γ , i : \Time \vdash A : U}{Γ \vdash ∃ i . A : U}
+\and \inferrule{Γ \vdash t_0 : \Time \\ Γ \vdash t_1 : \Time}
+               {Γ \vdash t_0 \leq t_1 : U}
+\and \inferrule{Γ \vdash A : U \\ Γ , x : A \vdash B : U}{Γ \vdash (x : A) \to B : U}
+\and \inferrule{Γ \vdash A : U \\ Γ , x : A \vdash B : U}{Γ \vdash Σ (x : A).~B : U}
+\and \inferrule{Γ \vdash A : U \\ Γ \vdash B : U}{Γ \vdash A + B : U}
+\and \inferrule{Γ \vdash A : U \\ Γ \vdash B : U}{Γ \vdash A × B : U}
+\and \inferrule{Γ \vdash \\  X = ⊥ , ⊤ , \Bool }{Γ \vdash X : U}
 
-%%\mytodo{maybe too boring to repeat all this for U? in the end it only lacks a code for |Time| and doesn't contain an universe itself}
+%%\mytodo{maybe too boring to repeat all this for U? in the end it only lacks a code for \Time and doesn't contain an universe itself}
 \end{mathpar}
-\caption{Codes for the Universe |U|}
+\caption{Codes for the Universe U}
 \label{fig:codes}
 \end{figure}
 
@@ -72,18 +73,18 @@ guardt f = λ i j -> f j
 
 \begin{figure*}
 \begin{align*}
-|∀ i . El A| &≅ |El A| & |i ∉ fv(A)| \\
-|∀ i . El (A(i))| &≅ |∀ i. ∀ (j < i). El (A(j))| & (|guardt| , |forcet|) \\
-|(∀ i. A) + (∀ i. B)| &≅ |∀ i. (A + B)| \\
-|∀ i. Σ (x : El A). B| &≅ |Σ (x : El A). ∀ i . B| & |i ∉ fv(A)|\\
+∀ i .~\El~A &≅ \El~A & i ∉ \mathsf{fv}(A) \\
+∀ i .~\El~(A[i]) &≅ ∀ i.~∀ (j < i).~\El~(A[j]) & (|guardt| , |forcet|) \\
+(∀ i.~A) + (∀ i.~B) &≅ ∀ i.~(A + B) \\
+∀ i.~Σ (x : \El~A).~B &≅ Σ (x : \El~A).~∀ i .~B & i ∉ \mathsf{fv}(A)\\
 \\
-|∃ i . El A| &≅ |El A| & |i ∉ fv(A)| \\
-|∃ i . A(i)| &≅ |∃ i. ∃ (j < i). A(j)| & (|guardb| , |forceb|) \\
-|(∃ i. A) + (∃ i. B)| &≅ |∃ i. (A + B)|\\
-|(∃ i. A(i)) × (∃ i. B(i))| &≅ |∃ i. (∃ (j < i) . A(j) × ∃ (j < i). B(j))|\\
-|Σ (x : El A). ∃ i. B| &≅ |∃ i. Σ (x : El A). B| & |i ∉ fv(A)|\\
-|∃ i . (x : El A) -> ∃ (j < i). B(j)| &≅ |(x : El A) → ∃ i . B(i)| & \mbox{finite } |El A|, |i ∉ fv(A)| \\
-|∃ i . ∃ j . A| &≅ |∃ j . ∃ i . A|
+∃ i .~\El~A &≅ \El~A & i ∉ \mathsf{fv}(A) \\
+∃ i .~A[i] &≅ ∃ i.~∃ (j < i).~A[j] & (|guardb| , |forceb|) \\
+(∃ i.~A) + (∃ i.~B) &≅ ∃ i.~(A + B)\\
+(∃ i.~A[i]) × (∃ i.~B[i]) &≅ ∃ i.~(∃ (j < i) .~A[j] × ∃ (j < i).~B[j])\\
+Σ (x : \El~A).~∃ i.~B &≅ ∃ i.~Σ (x : \El~A).~B & i ∉ \mathsf{fv}(A)\\
+∃ i .~(x : \El~A) \to ∃ (j < i).~B[j] &≅ (x : \El~A) \to ∃ i .~B[i] & \mbox{finite } \El~A, i ∉ \mathsf{fv}(A) \\
+∃ i .~∃ j .~A &≅ ∃ j .~∃ i .~A
 \end{align*}
 
 
