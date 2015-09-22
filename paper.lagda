@@ -31,12 +31,11 @@
 \usepackage{latexsym}
 \usepackage{fancyvrb}
 \usepackage{mathpartir}
-\usepackage{tikz-cd}
 
 \usepackage{todonotes}
-%%\newcommand{\mytodo}[2][]{}
-\newcommand{\mytodo}[2][]{\todo[color=gray!20,size=\scriptsize,fancyline,#1]{#2}}
-\newcommand{\redtodo}[2][]{\todo[color=red!20,size=\scriptsize,fancyline,#1]{#2}}
+\newcommand{\mytodo}[2][]{}
+%%\newcommand{\mytodo}[2][]{\todo[color=gray!20,size=\scriptsize,fancyline,#1]{#2}}
+%%\newcommand{\redtodo}[2][]{\todo[color=red!20,size=\scriptsize,fancyline,#1]{#2}}
 \usepackage{hyperref}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -338,7 +337,7 @@ We make the following contributions:
   polymorphism.
 \item In particular we show how existential \Time{} quantification supporting
   representation independence can be defined in a predicative system
-  by truncating $\Sigma-$types to the universe of discrete reflexive
+  by truncating $\Sigma$ types to the universe of discrete reflexive
   graphs.
 \end{itemize}
 
@@ -435,11 +434,11 @@ works on guarded recursion. For this purpose we make use of the modality
 \begin{code}
 fix :  (∀ k . tritk A -> A) -> ∀ k . A
 \end{code}
-Using the time metaphor, a value of type |tritk A| gives us an |A| at any time in the future.
+Using the time metaphor, a value of type |tritk A| gives us an |A| at every time in the future.
 
 With a suitable type |Stream uk| we can then define |ones|.
 \begin{code}
-cons : ∀ k . tritk Stream uk A  -> Stream uk A
+cons : ∀ k . A -> tritk Stream uk A  -> Stream uk A
 
 ones : ∀ k . Stream uk Nat
 ones = fix (λ k xs . cons 1 xs)
@@ -530,7 +529,7 @@ downfrom =
 \end{code}
 The existential quantification allows us to forget the time
 information of the naturals in the list, so that we do not have to keep
-them synchronized with the clock |k| given to the function we unfold.
+it synchronized with the clock |k| given to the function we unfold.
 
 \subsection{Inductive types}
 \label{sec:indty}
@@ -554,7 +553,7 @@ occurrence of |Nat uk|.
 Nat uk   = ⊤ + tribk Nat uk
 Zero uk : Nat uk
 Zero uk  = inl tt
-Suc uk : Nat uk -> Nat uk
+Suc uk : tribk Nat uk -> Nat uk
 Suc uk   = λ n . inr n
 \end{code}
 
@@ -610,13 +609,14 @@ clocks are a convenient abstraction over explicitly handling time values,
 since we can use the same clock to refer to different amounts of type
 depending on the context.
 
-We can think of clock variables as indexes into an environment of
+We can think of clock variables as indices into an environment of
 values of type |Time|. This environment however is not passed untouched to every
 sub-expression, or simply added to by binders, it also gets updated at the index |k| by
 the modalities |tritk| and |tribk| for the scope of their
 arguments.
 So the same clock variable represents different time values in different parts of a type expression.
-
+%% TODO example?
+%% Stream uk A -> tritk (Stream uk A)
 %%A good
 %%analogy is Haskell's |Reader| monad: a clock variable looks up the current value in the
 %%environment, while |tritk| and |tribk| locally override it with a smaller one.
@@ -698,7 +698,7 @@ extract A i (pack j a) = a
 
 The |fix| combinator, shown in Figure \ref{fig:fix}, is taken as a
 primitive principle of well-founded induction on |Time|. The notation
-|A(i)| stands for a type with |i| occurring free, so that |A(j)| has
+|A[i]| stands for a type with |i| occurring free, so that |A[j]| has
 instead all those occurrences replaced by |j|.
 The equality rule for |fix f i| describes it as the unique function with this unfolding,
 \begin{code}
@@ -764,8 +764,8 @@ restriction in further work.
 
 In this section we will show how to implement the recursive type
 equations we have used in terms of fixed points on the universe, then
-the induction principle for |Nat|, and lastly we construct initial
-algebras for any functor that properly commutes with |∃ i|.
+the induction principle for |Nat|, and lastly we construct an initial
+algebra for any functor that properly commutes with |∃ i|.
 
 \subsection{Recursive Type Equations}
 
@@ -838,7 +838,7 @@ and |(pack i (inr (pack j n)))| are equal since they both get sent to
 \begin{code}
 ∃ i . ⊤ + (∃ (j < i) . A) ≅ ⊤ + ∃ i. A
 \end{code}
-isomorphim.
+isomorphism.
 
 For an induction principle we also want the right computational
 behaviour when applied to the constructors for the datatype. We have
@@ -909,6 +909,7 @@ foldtri A f (i , x) = fix (\ i foldtri m. f (F (foldtri star) m)) i x
 Initial algebras can then be obtained by |\ x → ∃ i. mutri F (i , x)|
 for those |X|-indexed functors |F| which weakly commute with |∃ i| in the following sense.
 
+%%% TODO use environment
 Definition 1. Let |F| be an |X|-indexed functor, we say that |F|
 weakly commutes with |∃ i| if the canonical map
 \begin{code}
@@ -917,6 +918,7 @@ weakly commutes with |∃ i| if the canonical map
 \end{code}
 is an isomomorphism for every |A|.
 
+%%% TODO use environment
 Theorem 1. Let |F| be an |X|-indexed functor that weakly commutes with |∃
 i|, then |mu F x = ∃ i. mutri F (i , x)| is the initial algebra of
 |F|.
@@ -979,6 +981,8 @@ cat : Nat -> Stream Nat
 \end{code}
 such that |cat 1| is the stream of Catalan numbers: $C_1,C_2,C_3,
 \ldots$ where $C_n = \frac{1}{1 + n}\binom{2n}{n}$.
+The function itself is of little interest other than being a concise
+example of mixed recursion-corecursion.
 
 We define |Stream A| as the final coalgebra of |A ×|, with |Stream ui
 A| as the guarded version.
@@ -1016,10 +1020,11 @@ cat n = λ i . cat' i n
 \section{A Parametric Model}
 \label{sec:model}
 
-The type isomorphisms involving |∀ i| of Figure \ref{fig:isos}
-express the intuition that values are constructed in a |Time|
-invariant way, dually the ones involving |∃ i| the intuition that
-the only elimination principle for it is |Time| invariant.
+The type isomorphisms involving |∀ i| of Figure \ref{fig:isos} express
+the intuition that values are constructed in a |Time| invariant way,
+dually the isomorphisms involving |∃ i| express the intuition that the
+only elimination principle for |∃ i| is |Time| invariant.
+%% anything more precise than "express the intuition"?
 
 Since \cite{Reynolds}, Relational Parametricity
 \mytodo{caps?} has been shown to be a good tool to capture invariance
@@ -1047,43 +1052,44 @@ which we do not repeat the full definition but the main components are
 \item a collection $\TmF \Gamma A$ of semantic terms, for each $A \in \TyF \Gamma$.
 \end{itemize}
 The category $\CxtF$ in our case is the functor category $\CSet^\RG$,
-where $\RG$ is the small category of Figure \ref{fig:RG}. Since
+where $\RG$ is the small category with two objects, two parallel arrows, and a common section. Since
 $\CxtF$ is a functor category into $\CSet$ it inherits a standard
 Category with Families structure \cite{Hofmann} including definitions
 for the standard connectives, most of them lifted pointwise from
 \CSet, here we will mention only enough to explain our own connectives.
 
 An object $\Gamma$ of \CxtF is best thought of as a triple $(\Gamma_O, \Gamma_R,
-\Gamma_{refl})$ where $\Gamma_O$ is a set of objects, $\Gamma_R$ is a binary
-relation over $\Gamma_O$ and $\Gamma_{refl}$ is a function witnessing the
+\Gamma_{\refl})$ where $\Gamma_O$ is a set of objects, $\Gamma_R$ is a binary
+relation over $\Gamma_O$ and $\Gamma_{\refl}$ is a function witnessing the
 reflexivity of $\Gamma_R$.
 \[
 \begin{array}{l l}
 \Gamma_O & : Set \\
 \Gamma_R & : \Gamma_O × \Gamma_O \to Set \\
-\Gamma_{refl} & : \forall \gamma \in \Gamma_O.\; \Gamma_R(\gamma,\gamma)\\
+\Gamma_{\refl} & : \forall \gamma \in \Gamma_O.\; \Gamma_R(\gamma,\gamma)\\
 \end{array}
 \]
+We will refer to an element of $\Gamma_O$ as an environment.
 Morphisms $f : \Gamma \to \Delta$ are then a pair of functions $f_o$
 and $f_r$ which commute with reflexivity:
 \begin{gather*}
 f_o : \Gamma_O \to \Delta_O \\
 f_r : \forall \gamma_0, \gamma_1 \in \Gamma.\; \Gamma_R(\gamma_0,\gamma_1) \to \Delta_R(f_o(\gamma_0), f_o(\gamma_1)) \\
 \mbox{such that}\\
-\forall \gamma \in \Gamma_O.\; f_r (\Gamma_{refl}(\gamma)) = \Delta_{refl} (f_o(\gamma))
+\forall \gamma \in \Gamma_O.\; f_r (\Gamma_{\refl}(\gamma)) = \Delta_{\refl} (f_o(\gamma))
 \end{gather*}
-These morphisms assume the role of substitutions, mapping environments
-of the context $\Gamma$ into environments of $\Delta$. We use the
-notations $A\{f\}$ and $M\{f\}$ to apply the substitution $f$ to the type
-$A$ and term $M$.
+These morphisms should be thought of as substitutions, since they map
+environments of the context $\Gamma$ into environments of $\Delta$. We
+use the notations $A\{f\}$ and $M\{f\}$ to apply the substitution $f$
+to the type $A$ and term $M$.
 
 The collection $\TyF \Gamma$ of types then consists of families of reflexive
-graphs: a semantic type $A \in \TyF \Gamma$ is also a triple $(A_O,A_R,A_{refl})$
+graphs: a semantic type $A \in \TyF \Gamma$ is also a triple $(A_O,A_R,A_{\refl})$
 but each component is indexed by the corresponding one from $\Gamma$, allowing types to depend on values from the environment.
 \begin{gather*}
 A_O : \Gamma_O \to Set \\
 A_R : \forall \gamma_0 , \gamma_1 \in \Gamma,\; \Gamma_R(\gamma_0,\gamma_1) \to A_O(\gamma_0) × A_O(\gamma_1) \to Set \\
-A_{refl} : \forall \gamma \in \Gamma,\; \forall a \in A_O(\gamma).\; A_R(\Gamma_{refl}(\gamma),a,a)
+A_{\refl} : \forall \gamma \in \Gamma,\; \forall a \in A_O(\gamma).\; A_R(\Gamma_{\refl}(\gamma),a,a)
 \end{gather*}
 
 A semantic term $M \in \TmF \Gamma A$ correponds in principle to a
@@ -1093,7 +1099,7 @@ however defined explicitly as a pair of the following components:
 M_o : \forall \gamma \in \Gamma_O, \; A_O(\gamma)\\
 M_r : \forall \gamma_0, \gamma_1 \in \Gamma_O, \; \forall \gamma_r \in \Gamma_R(\gamma_0,\gamma_1), \; A_R(\gamma_r,M_o(\gamma_0),M_o(\gamma_1)) \\
 \mbox{such that}\\
-\forall \gamma \in \Gamma_O, \; M_r (\Gamma_{refl}(\gamma)) = A_{refl}(\Gamma_{refl}(\gamma),M_o (\gamma))\\
+\forall \gamma \in \Gamma_O, \; M_r (\Gamma_{\refl}(\gamma)) = A_{\refl}(\Gamma_{\refl}(\gamma),M_o (\gamma))\\
 \end{gather*}
 
 The empty context $\epsilon \in Obj(\CxtF)$ is defined as the
@@ -1118,15 +1124,19 @@ In order to recover standard parametricity results like the free
 theorems from \cite{Wadler}, Atkey et. al\mytodo{proper citation?} define a universe $\U
 \in \TyF \Gamma$ to connect the relations of the reflexive graphs to
 the equality of their set of objects.
-In particular for each $A \in \TmF \Gamma \U$ we get a type $\El A \in
-\TyF \Gamma$ such that $(\El A)_R(\Gamma_{refl}(\gamma))$
-is the equality relation of $(\El A)_O(\gamma)$, up to isomorphism.
+In particular for each $A \in \TmF \Gamma \U$ we get a type $\El~A \in
+\TyF \Gamma$ such that $(\El~A)_R(\Gamma_{\refl}(\gamma))$
+is the equality relation of $(\El~A)_O(\gamma)$, up to isomorphism.
 
 Fixing a set-theoretic universe $\Univ$, we can define the following properties of reflexive graphs:\\
+%%% TODO use environment
+%% Section 4.2. "Definition" ought to be in bold. Also, in the definition
+%% of U_R, why not just say that |R(a,b)| <= 1, instead of the
+%% injectivity constraint?
 Definition. A reflexive graph A is:
 \begin{itemize}
 \item small if $A_O \in \Univ$ and for all $a_0, a_1 \in A_O$, $A_R(a_0,a_1) \in \Univ$
-\item discrete if $A$ is isomorphic to a reflexive graph generated by a set, i.e. $A ≅ (X,=_X,refl_{=_X})$ for some set $X$.
+\item discrete if $A$ is isomorphic to a reflexive graph generated by a set, i.e. $A ≅ (X,=_X,\refl_{=_X})$ for some set $X$.
 \item proof-irrelevant if, for all $a_0, a_1 \in A_O$, the map $A_R(a_0,a_1) \to \{*\}$ is injective.
 \end{itemize}
 We are now ready to define $\U$ and $\El$:
@@ -1137,29 +1147,29 @@ We are now ready to define $\U$ and $\El$:
 \U_R(\gamma_r)(A,B) &=& \{R : A_O \to B_O \to Set \mid\\
   &&\hphantom{\{}\forall a \in A_O, b \in B_O, R(a,b) \in \Univ\\
   &&\hphantom{\{}\mbox{, the map } R(a,b) \to \{*\}\mbox{ is injective } \}\\
-\U_{refl}(\gamma)(A) &=& A_R\\
+\U_{\refl}(\gamma)(A) &=& A_R\\
 \\
 \multicolumn{3}{l}{\El \in \TyF {\Gamma.\U}}\\
 \El_O(\gamma,A) &=& A_O\\
 \El_R(\gamma_r,R) &=& R\\
-\El_{refl}(\gamma)(A) &=& A_{refl}\\
+\El_{\refl}(\gamma)(A) &=& A_{\refl}\\
 \end{array}
 \end{gather*}
 Assuming that the set-theoretic universe $\Univ$ is closed under the corresponding operations,
 the universe $\U$ is shown to contain product and sum types, natural
 numbers, to be closed under $\Sigma$ types and to contain $\Pi (x :
-A). \El (B x)$ for any small type $A$.
+A). \El~(B x)$ for any small type $A$.
 
 
-%% such that $(\El A)_O$ is a family of
-%% small sets, $(\El A)_R$ is a family of proof irrelevant relations, and
-%% for all $\gamma \in \Gamma_O$ we have that $(\El A)_R(\Gamma_{refl}(\gamma))$
-%% is the equality relation of $(\El A)_O(\gamma)$.Where the latter two requirements are to be considered up to isomorphism.
+%% such that $(\El~A)_O$ is a family of
+%% small sets, $(\El~A)_R$ is a family of proof irrelevant relations, and
+%% for all $\gamma \in \Gamma_O$ we have that $(\El~A)_R(\Gamma_{\refl}(\gamma))$
+%% is the equality relation of $(\El~A)_O(\gamma)$.Where the latter two requirements are to be considered up to isomorphism.
 
 \subsubsection{Invariance through Discreteness}
 \label{sec:inv-disc}
 One main feature of $\U$ is exemplified by considering a term $M \in
-\TmF{\Gamma.A}{(\El B)\{\tfst\}}$ where $A \in \TyF \Gamma$ and $B \in
+\TmF{\Gamma.A}{(\El~B)\{\tfst\}}$ where $A \in \TyF \Gamma$ and $B \in
 \TmF \Gamma \U$, i.e. where the type of the result is in the universe
 and does not depend on $A$.
 Unfolding the application of $\tfst$ and unpacking the environment for $\Gamma.A$ we get the following for the components of $M$.
@@ -1167,23 +1177,23 @@ The condition of commuting with reflexivity is between two elements of
 a proof-irrelevant relation, so can be omitted. %% TODO the condition of commuting?
 \[
 \begin{array}{l c l}
-M_o &:& \forall \gamma \in \Gamma_O, \; \forall a \in A_O(\gamma), \; (\El B)_O(\gamma) \\
+M_o &:& \forall \gamma \in \Gamma_O, \; \forall a \in A_O(\gamma), \; (\El~B)_O(\gamma) \\
 M_r &:& \forall \gamma_0, \gamma_1 \in \Gamma_O, \;
       \forall \gamma_r \in \Gamma_R(\gamma_0,\gamma_1), \; \\
       & &\forall a_0 \in A_O(\gamma_0), a_1 \in A_O(\gamma_1), \;
       \forall a_r \in \A_R(\gamma_r,a_0,a_1), \; \\
-       & &(\El B)_R(\gamma_r, M_o(\gamma_0,a_0), M_o(\gamma_1,a_1))\\
+       & &(\El~B)_R(\gamma_r, M_o(\gamma_0,a_0), M_o(\gamma_1,a_1))\\
 \end{array}
 \]
-We see that the result of $M_r$ does not mention $a_r$ because $\El B$ does not depend on $A$, moreover if
-we specialize $\gamma_r$ to $\Gamma_{refl}(\gamma)$ we get $(\El
-B)_R(\Gamma_{refl}(\gamma), M_o(\gamma,a_0), M_o(\gamma,a_1))$, which we
+We see that the result of $M_r$ does not mention $a_r$ because $\El~B$ does not depend on $A$, moreover if
+we specialize $\gamma_r$ to $\Gamma_{\refl}(\gamma)$ we get $(\El
+B)_R(\Gamma_{\refl}(\gamma), M_o(\gamma,a_0), M_o(\gamma,a_1))$, which we
 know to be isomorphic to $M_o(\gamma,a_0) = M_o(\gamma,a_1)$ so we can conclude
 the following:
 \begin{gather*}
 \forall \gamma \in \Gamma_O, \;
       \forall a_0, a_1 \in A_O(\gamma), \;
-      \forall a_r \in \A_R(\Gamma_{refl}(\gamma),a_0,a_1), \; \\
+      \forall a_r \in \A_R(\Gamma_{\refl}(\gamma),a_0,a_1), \; \\
         M_o(\gamma,a_0) = M_o(\gamma,a_1)
 \end{gather*}
 In other words, for a fixed $\gamma$, we have that $M_o$ considers any
@@ -1203,19 +1213,22 @@ The type |Time| is intepreted as the reflexive graph of natural
 numbers with $n \le m$ as the relation. Assuming that $ℕ \in \Univ$ we
 have that $\Time$ is small, but not discrete.
 \begin{gather*}
-\Time_O = ℕ\\
-\Time_R(n,m) = \{ * \mid n \le m \}\\
-\Time_{refl}(n) = *\\
+\begin{array}{l c l}
+\Time \in \TyF\epsilon\\
+\Time_O &=& ℕ\\
+\Time_R(n,m) &=& \{ * \mid n \le m \}\\
+\Time_{\refl}(n) &=& *\\
+\end{array}
 \end{gather*}
 The terms for |0| and |↑| are implemented by $0$ and $+1$ on the underlying naturals, and |⊔| by taking the maximum.
 
 The use of $\le$ as relation instead of $=$ is how we encode the
 invariance with respect to time values that we want in the model.
 In fact from the observation in Section \ref{sec:inv-disc} it follows that
-that a term $M \in \TmF {\Gamma.\Time} {(\El B)\{\tfst\}}$ is
+that a term $M \in \TmF {\Gamma.\Time} {(\El~B)\{\tfst\}}$ is
 going to produce the same result no matter what natural number it gets
-from the environment, since they are all related, which justifies the isomorphism $∀ i. \El
-B ≅ \El B$ of the language.\mytodo{mention that Pi types are naturally isomorphic to open terms?}
+from the environment, since they are all related, which justifies the isomorphism $∀ i. \El~
+B ≅ \El~B$ of the language.\mytodo{mention that Pi types are naturally isomorphic to open terms?}
 
 The relation between times |i ≤ j| is intepreted by\\ $\Le \,\, \in \TyF
 {\Time.\Time\{\tfst\}}$, which also fits in $\U$ since it has no
@@ -1224,11 +1237,11 @@ interesting inhabitants.
 \begin{array}{l c l}
 \Le_O(n , m) &=& \{ * \mid n \le m \} \\
 \Le_R(\_,\_) &=& \{*\}\\
-\Le_{refl}(\_) &=& *
+\Le_{\refl}(\_) &=& *
 \end{array}
 \end{gather*}
 
-The fixpoint operator |fix| and its uniqueness are implmented through
+The fixpoint operator |fix| and its uniqueness are implemented through
 well-founded induction on the natural numbers.
 
 \subsubsection{Representationally Independent Existential}
@@ -1279,21 +1292,21 @@ and that $\LiftF_{(A,A)}(A_R)$ is logically equivalent to the equality relation 
 Finally we define $\Tr A$ for a given $A \in Ty(\Gamma)$:
 \begin{gather*}
 (\Tr A) : \TmF \Gamma \U\\
-(\Tr A)_o(\gamma) = (A_O(\gamma)/^\st A_R(\Gamma_{refl}(\gamma)),  \LiftF(A_R(\Gamma_{refl}(\gamma)))) \\
+(\Tr A)_o(\gamma) = (A_O(\gamma)/^\st A_R(\Gamma_{\refl}(\gamma)),  \LiftF(A_R(\Gamma_{\refl}(\gamma)))) \\
 (\Tr A)_r(\gamma_r) = \LiftF(A_R(\gamma_r))
 \end{gather*}
 we have to show that $(\Tr A)_o$ and $(\Tr A)_r$ commute with reflexivity,
 \begin{gather*}
-\forall \gamma, \U_{refl}((\Tr A)_o(\gamma)) = (\Tr A)_r(\Gamma_{refl}(\gamma))
+\forall \gamma, \U_{\refl}((\Tr A)_o(\gamma)) = (\Tr A)_r(\Gamma_{\refl}(\gamma))
 \end{gather*}
-but $\U_{refl}$ projects out the relation given as the second
+but $\U_{\refl}$ projects out the relation given as the second
 component of the tuple, so both sides reduce to
-$\LiftF(A_r(\Gamma_{refl}(\gamma)))$ and we are done.
+$\LiftF(A_r(\Gamma_{\refl}(\gamma)))$ and we are done.
 
-Remark, for any $A \in \TmF \Gamma \U$, the types $\El A$ and $\El (\Tr
-A)$ are equivalent. In fact $A_r(\Gamma_{refl}(\gamma))$ is already
+We remark that, for any $A \in \TmF \Gamma \U$, the types $\El~A$ and $\El~(\Tr
+A)$ are equivalent. In fact $A_r(\Gamma_{\refl}(\gamma))$ is already
 equivalent to equality for $A_O(\gamma)$ so the quotient
-$A_O(\gamma)/^\st A_r(\Gamma_{refl}(\gamma))$ is equivalent to
+$A_O(\gamma)/^\st A_r(\Gamma_{\refl}(\gamma))$ is equivalent to
 $A_O(\gamma)$, and for the same reason $\LiftF(A_r(\gamma_r))$ is
 equivalent to $A_r(\gamma_r)$.
 
@@ -1301,17 +1314,17 @@ The next step is to define an introduction and an eliminator for $\Tr
 A$; the introduction sends an element of $A$ to its equivalence class:
 \begin{gather*}
 \begin{array}{l c l}
-\multicolumn{3}{l}{\tr : \TmF {\Gamma.A} {\El (\Tr A)\{\tfst\}}}  \\
+\multicolumn{3}{l}{\tr : \TmF {\Gamma.A} {\El~(\Tr A)\{\tfst\}}}  \\
 \tr_o(\_,a)   &=& [ a ]\\
 \tr_r(\_,a_r) &=& \liftF(a_r)
 \end{array}
 \end{gather*}
 We then have dependent elimination of $\Tr A$ into other types $B \in
-\TmF {\Gamma.\El (\Tr A)} {\U}$ that live in the universe.
-Given a $t \in \TmF {\Gamma.A} {\El B\{\tfst,\tr\}}$ we define $\elim$:
+\TmF {\Gamma.\El~(\Tr A)} {\U}$ that live in the universe.
+Given a $t \in \TmF {\Gamma.A} {\El~B\{\tfst,\tr\}}$ we define $\elim$:
 \begin{gather*}
 \begin{array}{l c l}
-\multicolumn{3}{l}{\elim : \TmF {\Gamma.\El (\Tr A)} {\El B}}\\
+\multicolumn{3}{l}{\elim : \TmF {\Gamma.\El~(\Tr A)} {\El~B}}\\
 \elim_o(\gamma,[ a ]) &=& t_o(\gamma,a)\\
 \elim_r(\gamma_r, [ (a',\tilde{a},b',\tilde{b},r) ]) &=& t_r(\gamma_r,r)
 \end{array}
@@ -1327,53 +1340,53 @@ $B$.
 %% even a member of the expected relation, both of these problems are
 %% solved by the discreteness of $B$.
 
-First we show that $t_r$ guarantees that $t_o$ respects $A_R(\Gamma_{refl}(\gamma))$:
+First we show that $t_r$ guarantees that $t_o$ respects $A_R(\Gamma_{\refl}(\gamma))$:
 we unfold the type of $t_r$,
 \[
 \begin{array}{l c l}
 t_r &:& \forall \gamma_0, \gamma_1 \in \Gamma_O, \; \gamma_r \in \Gamma_R(\gamma_0,\gamma_1), \;\\
     & & \forall a_0 \in A_O(\gamma_0), a_1 \in A_O(\gamma_1), a_r \in A_R(\gamma_r,a_0,a_1),\; \\
-    & & (\El B)_R((\gamma_r,\tr_r(a_r)), t_o(\gamma_0,a_0), t_o(\gamma_1,a_1))
+    & & (\El~B)_R((\gamma_r,\tr_r(a_r)), t_o(\gamma_0,a_0), t_o(\gamma_1,a_1))
 \end{array}
 \]
 and note that for any $\gamma \in \Gamma_O$ we can take
-$\gamma_r = \Gamma_{refl}(\gamma)$ and obtain
+$\gamma_r = \Gamma_{\refl}(\gamma)$ and obtain
 \begin{gather*}
-\forall a_0,a_1 \in A_O(\gamma), \; a_r \in A_R(\Gamma_{refl}(\gamma),a_0,a_1), \\
-(\El B)_R((\Gamma_{refl}(\gamma),\tr_r(a_r)), t_o(\gamma,a_0), t_o(\gamma,a_1)).
+\forall a_0,a_1 \in A_O(\gamma), \; a_r \in A_R(\Gamma_{\refl}(\gamma),a_0,a_1), \\
+(\El~B)_R((\Gamma_{\refl}(\gamma),\tr_r(a_r)), t_o(\gamma,a_0), t_o(\gamma,a_1)).
 \end{gather*}
-To use the discreteness of $(\El B)$ we need the environment to be
+To use the discreteness of $(\El~B)$ we need the environment to be
 obtained by reflexivity of $(\Gamma.\Tr A)$, so we need $\tr_r(a_r) =
-(\Tr A)_{refl}(a_0)$, and that follows from the proof-irrelevance of
+(\Tr A)_{\refl}(a_0)$, and that follows from the proof-irrelevance of
 $(\Tr A)_R$ and the fact that $\tr_o(a_0)$ equals $\tr_r(a_1)$.
 Hence from discreteness $(\El
-B)_R(\Gamma_{refl}(\gamma),\tr_r(a_r))$ is equivalent to equality on
-$(\El B)_O(\gamma,\tr_o(a_0))$ and we can conclude:
+B)_R(\Gamma_{\refl}(\gamma),\tr_r(a_r))$ is equivalent to equality on
+$(\El~B)_O(\gamma,\tr_o(a_0))$ and we can conclude:
 \begin{gather}
 \label{eq:respect}
 \begin{array}{l}
-\forall a_0,a_1 \in A_O(\gamma),\\ A_R(\Gamma_{refl}(\gamma))(a_0,a_1) \to t_o(\gamma,a0) = t_o(\gamma,a_1)
+\forall a_0,a_1 \in A_O(\gamma),\\ A_R(\Gamma_{\refl}(\gamma))(a_0,a_1) \to t_o(\gamma,a0) = t_o(\gamma,a_1)
 \end{array}
 \end{gather}
 To justify the definition of $\elim_o$ we have to show that for two
 $a_0, a_1 \in A_O(\gamma)$ related by $a_r \in
-A_R(\Gamma_{refl}(\gamma),a_0,a_1)$, we have $t_o(\gamma,a_0) =
+A_R(\Gamma_{\refl}(\gamma),a_0,a_1)$, we have $t_o(\gamma,a_0) =
 t_o(\gamma,a_1)$; but this follows directly from the observation about $t_r$.
 
-In the case of $\elim_r$ the proof-irrelevance of $(\El B)_R$ already
+In the case of $\elim_r$ the proof-irrelevance of $(\El~B)_R$ already
 implies that we will produce the same result for different
 representatives, however it is less obvious that $t_r(\gamma_r,r)$
 belongs in
-\[ (\El B)_R(\gamma_r,[
+\[ (\El~B)_R(\gamma_r,[
 (a',\tilde{a},b',\tilde{b},r) ]), t_o(\gamma_0,a), t_o(\gamma_1,b)).
 \]
 We know that
-\[ t_r(\gamma_r,r) \in (\El B)_R(\gamma_r,\liftF(r)),
+\[ t_r(\gamma_r,r) \in (\El~B)_R(\gamma_r,\liftF(r)),
 t_o(\gamma_0,a'), t_o(\gamma_1,b')) \]
 and from \ref{eq:respect} we know that
 \[ t_o(\gamma_0,a) = t_o(\gamma_0,a')\] and
 \[t_o(\gamma_1,b) = t_o(\gamma_1,b')\] so we also have \[ t_r(\gamma_r,r)
-\in (\El B)_R(\gamma_r,\liftF(r)), t_o(\gamma_0,a), t_o(\gamma_1,b))\]
+\in (\El~B)_R(\gamma_r,\liftF(r)), t_o(\gamma_0,a), t_o(\gamma_1,b))\]
 and since $\liftF(r) = [ (a',\tilde{a},b',\tilde{b},r) ]$ by proof-irrelevance,
 we obtain the result we wanted.
 
@@ -1396,7 +1409,7 @@ some direction.
 
 \section{Related Works}
 
-The application of Nakano's guard modality to coinductive types
+The application of Nakano's guard modality\cite{Nakano} to coinductive types
 started with \cite{atkeyMcBride:icfp13} by the introduction of clock
 variables to an otherwise simply typed language, \cite{mogelberg:lics2014}
 extended this result to a dependently typed setting where guarded
@@ -1417,8 +1430,8 @@ there is no map $(\trib A)(1) \to (\trib A)(0)$ in general: $(\trib
 A)(0)$ is an empty set, since there are no future times, while
 $(\trib A)(1)$ is only empty when $A(0)$ is.
 We are then forced to give up these maps, but having
-only $A : \CSet^{\mid\omega\mid}$ i.e. a collection of sets indexed by
-natural numbers would not be enough, in the parametric model the associated
+only $A : \CSet^{\mid\omega\mid}$ i.e., a collection of sets indexed by
+natural numbers, would not be enough, in the parametric model the associated
 relation is used to impose the invariance conditions needed.
 However we lose the full applicative functor structure of $\trit$,
 i.e. we lack
@@ -1433,7 +1446,7 @@ implemented explicitly for those types that would support restriction
 maps.
 
 The notation we use for the |trit| and |trib| modalities agrees with
-their use in provability logic \cite{provability} and its Kripke
+their use in provability logic and its Kripke
 models. Unfortunately we conflict with other works on guarded
 recursive types where $\trit$ is used as a nameless |∀ i| \cite{Krishnaswami13:simple-frp,ranald}.
 
@@ -1441,12 +1454,12 @@ When extended with copatterns \cite{Andreas}, Sized Types also justify
 the totality of (co)recursive definitions by well-founded induction on
 what there is called |Size|. The calculus presented there is defined
 as an extension of System F-omega so equality of terms does not affect
-typing, however they specify a strong normalizing reduction semantic while we have only specified equalities.
+typing. However, Abel and Pientka specify a strong normalizing reduction semantics while we have only specified equalities.
 The calculus allows direct recursion, with which we can define a
 general fixed point combinator
 \begin{code}
 fixlt :  ∀ (A : Size -> *). (∀ i. (∀ j < i. A j) -> A i)
-        → ∀ i. ∀ (j < i). A j
+         → ∀ i. ∀ (j < i). A j
 fixlt A f i j = f j (fixlt A f j)
 
 fix :  ∀ (A : Size -> *). (∀ i. (∀ j < i. A j) -> A i)
@@ -1470,7 +1483,7 @@ the isomorphisms from our language, so the problem of values that
 should be equal but differ only in |Size| values is still present.
 
 In HOL the system of tactics presented in \cite{foundational} allows
-corecursive calls to appear under "well-behaved" corecursive
+corecursive calls to appear under ``well-behaved'' corecursive
 functions, which consume as much of their coinductive inputs as they
 produce, i.e. that in our system would preserve the time values.
 They do not consider more complex relations between inputs and outputs
@@ -1528,7 +1541,7 @@ strength.
 \mytodo{maybe this should be its own section with more details? we also need an additional universe}
 We also want to formulate a strongly normalizing reduction semantics
 for our language, extending the result for Sized Types to our theory,
-in addition to a decidable subset of the equational theory presented.
+in addition to formulating a decidable subset of the equational theory presented.
 
 
 
@@ -1580,15 +1593,8 @@ in addition to a decidable subset of the equational theory presented.
 %%   - try to define a universe ala induction-recursion. ala guardedness-preserving, see release notes.
 %%   - apparently we can do nested/mixed recursion, see CatSZ.agda
 
-\appendix
-\section{Appendix Title}
-
-This is the text of the appendix, if you need one.
-
-\acks
-
-Acknowledgments, if needed.
-
+%% \acks
+%% For discussions on dependent type theory, totality and denotational models I would like to thank Andreas Abel
 % We recommend abbrvnat bibliography style.
 
 \bibliographystyle{abbrvnat}

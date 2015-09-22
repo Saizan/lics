@@ -70,16 +70,39 @@ where
 \end{figure}
 
 %include exists.lagda
+\begin{figure*}
+\begin{mathpar}
+  \inferrule{\Gamma\vdash t : \Time}
+            {\Gamma \vdash \mathsf{refl}~t : t \leq t}
+  \and
+    \inferrule{\Gamma\vdash p_0 : t_0 \leq t_1 \\ \Gamma\vdash p_1 : t_1 \leq t_2}{\Gamma \vdash \mathsf{trans}~p_0~p_1 : t_0 \leq t_1}
+  \and
+  \inferrule{\Gamma\vdash t : \Time}
+            {\Gamma \vdash \mathsf{zero}~t : 0 \leq t}
+  \and
+  \inferrule{\Gamma\vdash t : \Time}
+            {\Gamma \vdash \mathsf{step}~t : t \leq~↑ t}\\
+  \and
+  \inferrule{\Gamma\vdash t_0 : \Time \\ \Gamma\vdash t_1 : \Time}
+            {\Gamma\vdash \mathsf{⊔_0}~t_0~t_1 : t_0 \leq t_0 ⊔ t_1}
+  \and
+  \inferrule{\Gamma\vdash t_0 : \Time \\ \Gamma\vdash t_1 : \Time}
+            {\Gamma\vdash \mathsf{⊔_1}~t_0~t_1 : t_1 \leq t_0 ⊔ t_1}
+\end{mathpar}
+\caption{\Time{} inequalities}
+\label{fig:leq}
+\end{figure*}
 
 \begin{figure*}
+
 \begin{align*}
 ∀ i .~\El~A &≅ \El~A & i ∉ \mathsf{fv}(A) \\
-∀ i .~\El~(A[i]) &≅ ∀ i.~∀ (j < i).~\El~(A[j]) & (|guardt| , |forcet|) \\
+∀ i .~\El~(A[i]) &≅ ∀ i.~∀ (j < i).~\El~(A[j]) & |witnessed by| (|guardt| , |forcet|) \\
 (∀ i.~A) + (∀ i.~B) &≅ ∀ i.~(A + B) \\
 ∀ i.~Σ (x : \El~A).~B &≅ Σ (x : \El~A).~∀ i .~B & i ∉ \mathsf{fv}(A)\\
 \\
 ∃ i .~\El~A &≅ \El~A & i ∉ \mathsf{fv}(A) \\
-∃ i .~A[i] &≅ ∃ i.~∃ (j < i).~A[j] & (|guardb| , |forceb|) \\
+∃ i .~A[i] &≅ ∃ i.~∃ (j < i).~A[j] & |witnessed by| (|guardb| , |forceb|) \\
 (∃ i.~A) + (∃ i.~B) &≅ ∃ i.~(A + B)\\
 (∃ i.~A[i]) × (∃ i.~B[i]) &≅ ∃ i.~(∃ (j < i) .~A[j] × ∃ (j < i).~B[j])\\
 Σ (x : \El~A).~∃ i.~B &≅ ∃ i.~Σ (x : \El~A).~B & i ∉ \mathsf{fv}(A)\\
