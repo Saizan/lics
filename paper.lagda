@@ -20,7 +20,7 @@
 %-----------------------------------------------------------------------------
 
 %\nonstopmode
-\documentclass[natbib,authoryear,fleqn,preprint]{sigplanconf}
+\documentclass[natbib,authoryear,fleqn]{sigplanconf}
 % The following \documentclass options may be useful:
 
 % preprint      Remove this option only once the paper is in final form.
@@ -37,7 +37,16 @@
 %%\newcommand{\mytodo}[2][]{\todo[color=gray!20,size=\scriptsize,fancyline,#1]{#2}}
 %%\newcommand{\redtodo}[2][]{\todo[color=red!20,size=\scriptsize,fancyline,#1]{#2}}
 \usepackage{hyperref}
+\usepackage{amsthm}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
 
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % lhs2TeX setup
 
@@ -204,11 +213,11 @@
 
 \title{Total (Co)Programming with Guarded Recursion}
 %%\subtitle{Subtitle Text, if any}
-\authorinfo{}{}{}
+%%\authorinfo{}{}{}
 
-%% \authorinfo{Andrea Vezzosi}
-%%            {Chalmers Univerisity of Technology}
-%%            {vezzosi@@chalmers.se}
+\authorinfo{Andrea Vezzosi}
+           {Chalmers Univerisity of Technology}
+           {vezzosi@@chalmers.se}
 %% \authorinfo{Name2\and Name3}
 %%            {Affiliation2/3}
 %%            {Email2/3}
@@ -243,7 +252,7 @@ types.
 
 \end{abstract}
 
-\category{F.3.3}{Logics and Meanings of Programs}{Studies of Program Constructs}
+%%\category{F.3.3}{Logics and Meanings of Programs}{Studies of Program Constructs}
 
 % general terms are not compulsory anymore,
 % you may leave them out
@@ -640,6 +649,7 @@ In the following we use the shorthand $∀ i .~A$ in place of $(i :
 A$, and so we also omit the inequality proof in abstractions and
 applications, writing |λ j| in place of |λ j (p : ↑ j ≤ i)| and |f j|
 in place of |f j p|.
+\mytodo{We can then translate $\flater^\kappa\, A[\kappa]$ to $∀ j < i.~ [[A]][j]$ give full translation? explain [[.]]?}
 
 As an example the operator |<*>| is given the following type and implementation:
 \begin{code}
@@ -678,7 +688,7 @@ necessary to ensure the proper computational behaviour for induction.
 %%(Section \ref{sec:model}).
 
 Dually to |tritk| we have that |tribk| corresponds to a bounded |∃|
-and we allow similar shorthands |∃ (j < i). A| for |∃ j . ↑ j ≤ i ×
+and we allow similar shorthands |∃ j < i. A| for |∃ j . ↑ j ≤ i ×
 A| and |(pack j a)| for |(pack j (p , a))|.
 As an example we show the implementation of |star|:
 %%As an example we show the implementation of |star|, where the presence
@@ -716,10 +726,10 @@ language. The isomorphisms of Figure \ref{fig:isos} describe how the
 equational theory.
 We take as example the pair of |guardb| and |forceb|:
 \begin{code}
-guardb : (∃ i . A i) -> ∃ i . ∃ (j < i). A j
+guardb : (∃ i . A i) -> ∃ i . ∃ j < i. A j
 guardb (pack i a) = (pack (↑ i) (pack i a))
 
-forceb : (∃ i . ∃ (j < i). A j) → ∃ i . A i
+forceb : (∃ i . ∃ j < i. A j) → ∃ i . A i
 forceb (pack i (pack j a)) = (pack j a)
 \end{code}
 the $\beta$ and $\eta$ rules for |∃ i| are not enough to show that they are an isomorphism,
@@ -744,7 +754,7 @@ can be implemented for dependent functions:
 
 The limitation to only finite |El A| in the isomorphism
 \begin{code}
-∃ i . (x : El A) -> ∃ (j < i). B ≅ (x : El A) → ∃ j . B
+∃ i . (x : El A) -> ∃ j < i. B ≅ (x : El A) → ∃ j . B
 \end{code}
 is because, to go from right to left, we need to find a |i| which is
 an upper bound for all the |j|s returned by the function $(x : \El~A) \to
@@ -770,21 +780,21 @@ algebra for any functor that properly commutes with |∃ i|.
 \subsection{Recursive Type Equations}
 
 For any function |F : U -> U| we can build |Fixb F : Time -> U| such
-that |Fixb F i = F (∃ (j < i). Fixb F j)|.
+that |Fixb F i = F (∃ j < i. Fixb F j)|.
 
-The first step is to recognize that |∃ (j < i).| can take an element
-of |∀ (j < i). U| as input rather than |U| or |Time -> U|, defining
+The first step is to recognize that |∃ j < i.| can take an element
+of |∀ j < i. U| as input rather than |U| or |Time -> U|, defining
 the combinator |wtribi|.
 \begin{code}
-wtribi : (∀ (j < i). U) -> U
-wtribi X = ∃ (j < i). X j
+wtribi : (∀ j < i. U) -> U
+wtribi X = ∃ j < i. X j
 \end{code}
 Using the time analogy for intuition, in a case where we have no time
-left, so there's no |j < i|, we already know that |∃ (j < i). A|
+left, so there's no |j < i|, we already know that |∃ j < i. A|
 is equivalent to |⊥| without having to know what |A| is, only if we
 actually have time to spare we will look into it.
 
-Given |wtribi| we can turn $F : \U \to \U$ into $∀ i .~(∀~(j < i).~\U) \to \U$ by
+Given |wtribi| we can turn $F : \U \to \U$ into $∀ i .~(∀j < i.~\U) \to \U$ by
 precomposition and define |Fixb| through |fix|, giving us the desired
 property.
 \begin{code}
@@ -793,8 +803,8 @@ Fixb = fix (λ i X . F (wtribi X))
 
 In the same way we define |Fixt| by |wtriti|:
 \begin{code}
-wtriti : (∀ (j < i). U) -> U
-wtriti X = ∀ (j < i). X j
+wtriti : (∀ j < i. U) -> U
+wtriti X = ∀ j < i. X j
 \end{code}
 
 \subsection{Induction on Nat}
@@ -836,7 +846,7 @@ n))))|.  We can however conclude that |(pack (↑ j) (inr (pack j n)))|
 and |(pack i (inr (pack j n)))| are equal since they both get sent to
 |(pack j n)| by the
 \begin{code}
-∃ i . ⊤ + (∃ (j < i) . A) ≅ ⊤ + ∃ i. A
+∃ i . ⊤ + (∃ j < i . A) ≅ ⊤ + ∃ i. A
 \end{code}
 isomorphism.
 
@@ -873,11 +883,11 @@ An |X|-indexed functor |F| is then a pair of terms
 \end{code}
 such that |F₁| preserves identities and composition.
 
-As an example we can make |∃ (j < i).| into a |(Time × X)|-indexed
+As an example we can make |∃ j < i.| into a |(Time × X)|-indexed
 functor by defining |trib| like so:
 \begin{code}
 (trib)₀ : (Time × X → U) → (Time × X → U)
-(trib)₀ A (i , x) = ∃ (j < i) . A (j , x)
+(trib)₀ A (i , x) = ∃ j < i . A (j , x)
 \end{code}
 the action on morphisms is also pointwise and the $\eta$ rule for |∃|
 and |×| are enough to preserve identities and composition.
@@ -891,7 +901,7 @@ F[trib A ]₀ (i , x) = F₀ (λ y. ∃ j < i. A y) x
 For each |X|-indexed functor |F| we obtain the initial algebra of
 |F[trib -]| by
 \begin{code}
-mutri F (i , x) = fix (\ i A x . F (\ y. ∃ (j < i) . A (j , x)) i x
+mutri F (i , x) = fix (\ i A x . F (\ y. ∃ j < i . A (j , x)) i x
 \end{code}
 so that |mutri F = F[trib mutri F]|.
 
@@ -910,19 +920,23 @@ Initial algebras can then be obtained by |\ x → ∃ i. mutri F (i , x)|
 for those |X|-indexed functors |F| which weakly commute with |∃ i| in the following sense.
 
 %%% TODO use environment
-Definition 1. Let |F| be an |X|-indexed functor, we say that |F|
+\begin{definition}
+Let |F| be an |X|-indexed functor, we say that |F|
 weakly commutes with |∃ i| if the canonical map
 \begin{code}
 (x : X)  → (∃ i . F [trib A] (i , x))
          → F (\ x' → ∃ i. A (i , x')) x
 \end{code}
 is an isomomorphism for every |A|.
+\end{definition}
 
 %%% TODO use environment
-Theorem 1. Let |F| be an |X|-indexed functor that weakly commutes with |∃
+%%Theorem 1.
+\begin{theorem}
+Let |F| be an |X|-indexed functor that weakly commutes with |∃
 i|, then |mu F x = ∃ i. mutri F (i , x)| is the initial algebra of
 |F|.
-
+\end{theorem}
 Proof (Sketch). From |F| weakly commuting with |∃ i| at type |mutri F| we
 obtain an indexed isomorphism |F (mu F) ≅ mu F| and so in particular
 an algebra |F (mu F) ⇒ F|, the morphism from any other algebra is
@@ -954,21 +968,25 @@ The above result can be dualized to obtain final coalgebras of
 For each |X|-indexed functor |F| we obtain the final coalgebra of
 |F[trit -]| by
 \begin{code}
-nutri F (i , x) = fix (\ i A x. F (\ y. ∀ (j < i) . A (j , x)) i x
+nutri F (i , x) = fix (\ i A x. F (\ y. ∀ j < i . A (j , x)) i x
 \end{code}
 so that |nutri F = F[trit nutri F]|.
 
-Definition 2. Let |F| be an |X|-indexed functor, we say that |F|
+\begin{definition}
+Let |F| be an |X|-indexed functor, we say that |F|
 weakly commutes with |∀ i| if the canonical map
 \begin{code}
 (x : X)  → F (\ x'. ∀ i. A (i , x')) x
          → (∀ i . F [trit A] (i , x))
 \end{code}
 is an isomomorphism for every |A|.
+\end{definition}
 
-Theorem 2. Let |F| be an |X|-indexed functor that weakly commutes with |∀
+\begin{theorem}
+Let |F| be an |X|-indexed functor that weakly commutes with |∀
 i|, then |nu F x = ∃ i. nutri F (i , x)| is the final coalgebra of
 |F|.
+\end{theorem}
 
 \mytodo{dependent elimination for |nu F| ?}
 \subsection{Mixed Recursion-Corecursion}
@@ -1041,14 +1059,14 @@ To model our language then we make use of the relationally parametric model of
 dependent type theory from \cite{atkey:param}, defining |Time| as the
 type of natural numbers related by |<=| and the universe |U| as
 small sets related by proof-irrelevant relations (their
-"Small, Discrete, Proof Irrelevant Universe").
+``Small, Discrete, Proof Irrelevant Universe'').
 
 \subsection{Reflexive Graphs as a Category with Families}
 The model is formulated as a Category with Families \cite{cwf}, of
 which we do not repeat the full definition but the main components are
 \begin{itemize}
 \item a category $\CxtF$ of contexts
-\item a collection $\TyF \Gamma$ of semantic types for each $\Gamma \in Obj(\CxtF)$
+\item a collection $\TyF \Gamma$ of semantic types for each $\Gamma \in \Obj(\CxtF)$
 \item a collection $\TmF \Gamma A$ of semantic terms, for each $A \in \TyF \Gamma$.
 \end{itemize}
 The category $\CxtF$ in our case is the functor category $\CSet^\RG$,
@@ -1058,7 +1076,7 @@ Category with Families structure \cite{Hofmann} including definitions
 for the standard connectives, most of them lifted pointwise from
 \CSet, here we will mention only enough to explain our own connectives.
 
-An object $\Gamma$ of \CxtF is best thought of as a triple $(\Gamma_O, \Gamma_R,
+An object $\Gamma$ of $\CxtF$ is best thought of as a triple $(\Gamma_O, \Gamma_R,
 \Gamma_{\refl})$ where $\Gamma_O$ is a set of objects, $\Gamma_R$ is a binary
 relation over $\Gamma_O$ and $\Gamma_{\refl}$ is a function witnessing the
 reflexivity of $\Gamma_R$.
@@ -1102,7 +1120,7 @@ M_r : \forall \gamma_0, \gamma_1 \in \Gamma_O, \; \forall \gamma_r \in \Gamma_R(
 \forall \gamma \in \Gamma_O, \; M_r (\Gamma_{\refl}(\gamma)) = A_{\refl}(\Gamma_{\refl}(\gamma),M_o (\gamma))\\
 \end{gather*}
 
-The empty context $\epsilon \in Obj(\CxtF)$ is defined as the
+The empty context $\epsilon \in \Obj(\CxtF)$ is defined as the
 singleton reflexive graph $\epsilon = (\{*\},(λ \, \_ \, \_ \, . \, \{*\}),(λ \, \_ \, \_ \, . \, *))$.
 As a consequence an element of $Ty(\epsilon)$ corresponds to an object of \CxtF.
 We can also extend a context $\Gamma$ by a type $A \in \TyF \Gamma$ to
@@ -1133,12 +1151,14 @@ Fixing a set-theoretic universe $\Univ$, we can define the following properties 
 %% Section 4.2. "Definition" ought to be in bold. Also, in the definition
 %% of U_R, why not just say that |R(a,b)| <= 1, instead of the
 %% injectivity constraint?
-Definition. A reflexive graph A is:
+\begin{definition}
+A reflexive graph $A$ is:
 \begin{itemize}
 \item small if $A_O \in \Univ$ and for all $a_0, a_1 \in A_O$, $A_R(a_0,a_1) \in \Univ$
 \item discrete if $A$ is isomorphic to a reflexive graph generated by a set, i.e. $A ≅ (X,=_X,\refl_{=_X})$ for some set $X$.
 \item proof-irrelevant if, for all $a_0, a_1 \in A_O$, the map $A_R(a_0,a_1) \to \{*\}$ is injective.
 \end{itemize}
+\end{definition}
 We are now ready to define $\U$ and $\El$:
 \begin{gather*}
 \begin{array}{l c l}
@@ -1158,7 +1178,7 @@ We are now ready to define $\U$ and $\El$:
 Assuming that the set-theoretic universe $\Univ$ is closed under the corresponding operations,
 the universe $\U$ is shown to contain product and sum types, natural
 numbers, to be closed under $\Sigma$ types and to contain $\Pi (x :
-A). \El~(B x)$ for any small type $A$.
+A). \El~(B~x)$ for any small type $A$.
 
 
 %% such that $(\El~A)_O$ is a family of
@@ -1168,10 +1188,27 @@ A). \El~(B x)$ for any small type $A$.
 
 \subsubsection{Invariance through Discreteness}
 \label{sec:inv-disc}
+
 One main feature of $\U$ is exemplified by considering a term $M \in
-\TmF{\Gamma.A}{(\El~B)\{\tfst\}}$ where $A \in \TyF \Gamma$ and $B \in
-\TmF \Gamma \U$, i.e. where the type of the result is in the universe
+\TmF{\Gamma.A}{(\El~B)\{\tfst\}}$, i.e., where the type of the result is in the universe
 and does not depend on $A$.
+
+\begin{lemma}
+\label{lem:inv-disc}
+Let $A \in \TyF \Gamma$, $B \in \TmF \Gamma \U$, and $M \in
+\TmF{\Gamma.A}{(\El~B)\{\tfst\}}$ then
+\begin{gather*}
+\forall \gamma \in \Gamma_O, \;
+      \forall a_0, a_1 \in A_O(\gamma), \;
+      \forall a_r \in \A_R(\Gamma_{\refl}(\gamma),a_0,a_1), \; \\
+        M_o(\gamma,a_0) = M_o(\gamma,a_1)
+\end{gather*}
+\end{lemma}
+%% One main feature of $\U$ is exemplified by considering a term $M \in
+%% \TmF{\Gamma.A}{(\El~B)\{\tfst\}}$ where $A \in \TyF \Gamma$ and $B \in
+%% \TmF \Gamma \U$, i.e. where the type of the result is in the universe
+%% and does not depend on $A$.
+\begin{proof}
 Unfolding the application of $\tfst$ and unpacking the environment for $\Gamma.A$ we get the following for the components of $M$.
 The condition of commuting with reflexivity is between two elements of
 a proof-irrelevant relation, so can be omitted. %% TODO the condition of commuting?
@@ -1186,16 +1223,11 @@ M_r &:& \forall \gamma_0, \gamma_1 \in \Gamma_O, \;
 \end{array}
 \]
 We see that the result of $M_r$ does not mention $a_r$ because $\El~B$ does not depend on $A$, moreover if
-we specialize $\gamma_r$ to $\Gamma_{\refl}(\gamma)$ we get $(\El
+we specialize $\gamma_r$ to $\Gamma_{\refl}(\gamma)$ we get $(\El~
 B)_R(\Gamma_{\refl}(\gamma), M_o(\gamma,a_0), M_o(\gamma,a_1))$, which we
-know to be isomorphic to $M_o(\gamma,a_0) = M_o(\gamma,a_1)$ so we can conclude
-the following:
-\begin{gather*}
-\forall \gamma \in \Gamma_O, \;
-      \forall a_0, a_1 \in A_O(\gamma), \;
-      \forall a_r \in \A_R(\Gamma_{\refl}(\gamma),a_0,a_1), \; \\
-        M_o(\gamma,a_0) = M_o(\gamma,a_1)
-\end{gather*}
+know to be isomorphic to $M_o(\gamma,a_0) = M_o(\gamma,a_1)$ so we have our result.
+\end{proof}
+
 In other words, for a fixed $\gamma$, we have that $M_o$ considers any
 two related $a_i$ as being equal, since it returns the same result.
 
@@ -1224,7 +1256,7 @@ The terms for |0| and |↑| are implemented by $0$ and $+1$ on the underlying na
 
 The use of $\le$ as relation instead of $=$ is how we encode the
 invariance with respect to time values that we want in the model.
-In fact from the observation in Section \ref{sec:inv-disc} it follows that
+In fact from Lemma \ref{lem:inv-disc} it follows that
 that a term $M \in \TmF {\Gamma.\Time} {(\El~B)\{\tfst\}}$ is
 going to produce the same result no matter what natural number it gets
 from the environment, since they are all related, which justifies the isomorphism $∀ i. \El~
@@ -1243,6 +1275,7 @@ interesting inhabitants.
 
 The fixpoint operator |fix| and its uniqueness are implemented through
 well-founded induction on the natural numbers.
+%%In particular given $f \in \TmF {\Gamma.Time.
 
 \subsubsection{Representationally Independent Existential}
 
@@ -1256,7 +1289,7 @@ Given a small $A \in \TyF \Gamma$ we define $\Tr A \in \TmF \Gamma \U$
 which we call the discrete truncation of $A$.We first give some preliminary definitions on reflexive graphs, and
 then lift those to the case of families to define $\Tr$.
 
-For a reflexive graph $A \in Obj(\CxtF)$ we define $\rt A$ to be the
+For a reflexive graph $A \in \Obj(\CxtF)$ we define $\rt A$ to be the
 set obtained by quotienting $A_O$ with $A_R^\st$, which is how we denote the symmetric transitive closure of $A_R$.
 \begin{gather*}
 \rt A = A_O/(λ a_0~a_1.~ \exists \tilde{a}.~\tilde{a} \in A_R^\st(a_0,a_1))
@@ -1267,10 +1300,10 @@ a function $\liftF_R : \forall a, b. \, R(a,b) →
 \LiftF_{(A,B)}(R)([a],[b])$.
 \begin{gather*}
 \begin{array}{l c l}
-\LiftF &:& \forall A, B \in Obj(\CxtF), \forall (R : A_O \to B_O \to Set),\\
+\LiftF &:& \forall A, B \in \Obj(\CxtF), \forall (R : A_O \to B_O \to Set),\\
        & &  \rt A \to \rt B \to Set \\
 \end{array}\\
-\LiftF_{(A,B)}(R : A_O \to B_O \to Set)([ a ],[ b ])\\
+\LiftF_{(A,B)}(R)([ a ],[ b ])\\
 \begin{array}{l c l c l}
   &=& \{ (a',\tilde{a} ,b',\tilde{b},r) &\mid& a' \in A_O, \tilde{a} \in A_R^\st(a,a'),\\
   & & & &b' \in B_O, \tilde{b} \in B_R^\st(b,b'),\\
@@ -1450,6 +1483,15 @@ their use in provability logic and its Kripke
 models. Unfortunately we conflict with other works on guarded
 recursive types where $\trit$ is used as a nameless |∀ i| \cite{Krishnaswami13:simple-frp,ranald}.
 
+In HOL the system of tactics presented in \cite{foundational} allows
+corecursive calls to appear under ``well-behaved'' corecursive
+functions, which consume as much of their coinductive inputs as they
+produce, i.e. that in our system would preserve the time values.
+They do not consider more complex relations between inputs and outputs
+and the well-behavedness of a function is not part of its type, so the
+user interface is simpler, even if less expressive.
+
+\subsection{Comparison to Sized Types}
 When extended with copatterns \cite{Andreas}, Sized Types also justify
 the totality of (co)recursive definitions by well-founded induction on
 what there is called |Size|. The calculus presented there is defined
@@ -1459,12 +1501,12 @@ The calculus allows direct recursion, with which we can define a
 general fixed point combinator
 \begin{code}
 fixlt :  ∀ (A : Size -> *). (∀ i. (∀ j < i. A j) -> A i)
-         → ∀ i. ∀ (j < i). A j
+         → ∀ i. ∀ j < i. A j
 fixlt A f i j = f j (fixlt A f j)
 
 fix :  ∀ (A : Size -> *). (∀ i. (∀ j < i. A j) -> A i)
        → ∀ i. A i
-fix A f i = fixlt A f (↑ i) i
+fix A f i = f i (fixlt A f i)
 \end{code}
 We have that |fix A f i| reduces to |f j (fixlt A f j)| which does not
 reduce further unless |f| does. Because of this, reduction alone does
@@ -1482,14 +1524,29 @@ however the current definitional equality of Agda does not validate
 the isomorphisms from our language, so the problem of values that
 should be equal but differ only in |Size| values is still present.
 
-In HOL the system of tactics presented in \cite{foundational} allows
-corecursive calls to appear under ``well-behaved'' corecursive
-functions, which consume as much of their coinductive inputs as they
-produce, i.e. that in our system would preserve the time values.
-They do not consider more complex relations between inputs and outputs
-and the well-behavedness of a function is not part of its type, so the
-user interface is simpler, even if less expressive.
+Another important distinction is that Abel and Pientka aim for a judgemental equality that includes the
+the equations the user writes, because of this they include extra
+restrictions on when it is allowed to have a lambda abstraction over
+sizes, e.g., defining a second fixed-point combinator like the following
+\begin{code}
+fix2 :  ∀ (A : Size -> *). (∀ i. (∀ j < i. A j) -> A i)
+       → ∀ i. A i
+fix2 A f i = f i (λ j. fix A f j)
+\end{code}
+would not be accepted as a definition, the typing rule for the
+abstraction over $j < i$ checks whether it is already known that $i$ is
+non-zero, and here that's not the case. This restriction ensures that
+evaluation, even when going under lambdas, never assumes more about
+the sizes in the context than what was already known, so the
+well-foundedness of the order on sizes can be used to show termination.
 
+Our work instead does not impose additional restrictions on lambda
+abstractions involving sizes, so that the user can trust her
+intuition of well-founded induction to know whether an expression will
+be accepted. The rewriting semantics will need to cope
+with this by using a different strategy to block evaluation.
+%% too up in the air?
+%comparison to sacchini or other guys?
 
 %sized types
 %- dependent type theory

@@ -1,7 +1,7 @@
 \begin{figure}
 \begin{mathpar}
 \inferrule{Γ \vdash A :\Type \\ Γ ,\, x : A \vdash B :\Type}{Γ \vdash (x : A) \to B :\Type}
-\and \inferrule{Γ \vdash A :\Type \\ Γ ,\, x : A \vdash B :\Type}{Γ \vdash Σ (x : A). B :\Type}
+\and \inferrule{Γ \vdash A :\Type \\ Γ ,\, x : A \vdash B :\Type}{Γ \vdash Σ (x : A).\, B :\Type}
 \and \inferrule{Γ \vdash A :\Type \\ Γ \vdash B :\Type}{Γ \vdash A + B :\Type}
 \and \inferrule{Γ \vdash A :\Type \\ Γ \vdash B :\Type}{Γ \vdash A × B :\Type}
 \and \inferrule{Γ \vdash \\ X = ⊥ , ⊤ , \Bool}{Γ \vdash X :\Type}
@@ -20,7 +20,7 @@
 %% Time
 \inferrule{ }{Γ \vdash \Time :\Type}
 \and \inferrule{ }{Γ \vdash 0 : \Time}
-\and \inferrule{Γ \vdash t : \Time}{Γ \vdash ↑ t : \Time}
+\and \inferrule{Γ \vdash t : \Time}{Γ \vdash\, ↑ t : \Time}
 \and \inferrule{Γ \vdash t_0 : \Time \\ Γ \vdash t_1 : \Time}
                {Γ \vdash t_0 ⊔ t_1 : \Time}
 \and \inferrule{Γ \vdash t_0 : \Time \\ Γ \vdash t_1 : \Time}
@@ -53,8 +53,8 @@ where
 \begin{figure}
 \begin{mathpar}
 %% Codes
-\inferrule{Γ , i : \Time \vdash A : U}{Γ \vdash ∀ i . A : U}
-\and \inferrule{Γ , i : \Time \vdash A : U}{Γ \vdash ∃ i . A : U}
+\inferrule{Γ , i : \Time \vdash A : U}{Γ \vdash ∀ i.\, A : U}
+\and \inferrule{Γ , i : \Time \vdash A : U}{Γ \vdash ∃ i.\, A : U}
 \and \inferrule{Γ \vdash t_0 : \Time \\ Γ \vdash t_1 : \Time}
                {Γ \vdash t_0 \leq t_1 : U}
 \and \inferrule{Γ \vdash A : U \\ Γ , x : A \vdash B : U}{Γ \vdash (x : A) \to B : U}
@@ -97,16 +97,16 @@ where
 
 \begin{align*}
 ∀ i .~\El~A &≅ \El~A & i ∉ \mathsf{fv}(A) \\
-∀ i .~\El~(A[i]) &≅ ∀ i.~∀ (j < i).~\El~(A[j]) & |witnessed by| (|guardt| , |forcet|) \\
+∀ i .~\El~(A[i]) &≅ ∀ i.~∀ j < i.~\El~(A[j]) & \mbox{witnessed by } (|guardt| , |forcet|) \\
 (∀ i.~A) + (∀ i.~B) &≅ ∀ i.~(A + B) \\
 ∀ i.~Σ (x : \El~A).~B &≅ Σ (x : \El~A).~∀ i .~B & i ∉ \mathsf{fv}(A)\\
 \\
 ∃ i .~\El~A &≅ \El~A & i ∉ \mathsf{fv}(A) \\
-∃ i .~A[i] &≅ ∃ i.~∃ (j < i).~A[j] & |witnessed by| (|guardb| , |forceb|) \\
+∃ i .~A[i] &≅ ∃ i.~∃ j < i.~A[j] & \mbox{witnessed by } (|guardb| , |forceb|) \\
 (∃ i.~A) + (∃ i.~B) &≅ ∃ i.~(A + B)\\
-(∃ i.~A[i]) × (∃ i.~B[i]) &≅ ∃ i.~(∃ (j < i) .~A[j] × ∃ (j < i).~B[j])\\
+(∃ i.~A[i]) × (∃ i.~B[i]) &≅ ∃ i.~(∃ j < i .~A[j] × ∃ j < i.~B[j])\\
 Σ (x : \El~A).~∃ i.~B &≅ ∃ i.~Σ (x : \El~A).~B & i ∉ \mathsf{fv}(A)\\
-∃ i .~(x : \El~A) \to ∃ (j < i).~B[j] &≅ (x : \El~A) \to ∃ i .~B[i] & \mbox{finite } \El~A, i ∉ \mathsf{fv}(A) \\
+∃ i .~(x : \El~A) \to ∃ j < i.~B[j] &≅ (x : \El~A) \to ∃ i .~B[i] & \mbox{finite } \El~A, i ∉ \mathsf{fv}(A) \\
 ∃ i .~∃ j .~A &≅ ∃ j .~∃ i .~A
 \end{align*}
 

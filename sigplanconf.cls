@@ -200,7 +200,7 @@
 
 \@setflag \@authoryear = \@false
 \@setflag \@blockstyle = \@false
-\@setflag \@copyrightwanted = \@true
+\@setflag \@copyrightwanted = \@false
 \@setflag \@explicitsize = \@false
 \@setflag \@mathtime = \@false
 \@setflag \@natbib = \@true
@@ -266,7 +266,7 @@
 
 \DeclareOption{numbers}{\@setflag \@authoryear = \@false}
 
-%%%\DeclareOption{onecolumn}{\@setflag \@onecolumn = \@true}
+\DeclareOption{onecolumn}{\@setflag \@onecolumn = \@true}
 
 \DeclareOption{preprint}{\@setflag \@preprint = \@true}
 
@@ -580,8 +580,7 @@
     \parbox[b]{20pc}{%
       \scriptsize
       \if \@preprint
-        [Copyright notice will appear here
-         once 'preprint' option is removed.]\par
+        \par
       \else
         \@toappear
       \fi
