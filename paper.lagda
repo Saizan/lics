@@ -373,7 +373,7 @@ type |(A -> B) -> trib RoseTree A → trib RoseTree B|, i.e. it can
 only handle smaller trees but also produces smaller trees, so the
 definition is well-typed. If we tried to write a circular definition like
 \begin{code}
-mapRT f ts = mapRT f ts
+mapRT f ts = mapRT ut f ts
 \end{code}
 the types would not match because |ts| is of type |RoseTree A|
 rather than |trib RoseTree A|.
@@ -587,7 +587,7 @@ difference between |(pack k (inl tt))| and |(pack k' (inl tt))| for two
 different clocks |k| and |k'|.
 
 The key idea is that values of type |∃ k . A| must keep abstract the
-specific clock they were built with, exactly like weak sums in System
+specific clock they were built with, exactly like weak sums do, for the quantified type, in System
 F. Intuitively Nat will not be the initial algebra of |(⊤ +)| unless |Nat ≅
 ⊤ + Nat| holds, so we must be able to support both an interface and an
 equational theory where clocks play no role.
@@ -984,7 +984,7 @@ is an isomomorphism for every |A|.
 
 \begin{theorem}
 Let |F| be an |X|-indexed functor that weakly commutes with |∀
-i|, then |nu F x = ∃ i. nutri F (i , x)| is the final coalgebra of
+i|, then |nu F x = ∀ i. nutri F (i , x)| is the final coalgebra of
 |F|.
 \end{theorem}
 
