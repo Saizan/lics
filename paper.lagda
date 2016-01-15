@@ -637,6 +637,13 @@ typed language of Figure \ref{fig:TT} a new type |Time|, together with inequalit
 |(i j : Time) ⊢ i ≤ j|, zero |0 : Time|, successor |↑ : Time -> Time| and a maximum operator |⊔ : Time -> Time -> Time|
 (Figure \ref{fig:Time}).
 
+The theory we will present does not support decidable typechecking and
+includes some uniqueness principles that would not be suitable for an
+intensional type theory like Coq and Agda. This theory is however
+useful to present the properties of the denotational model of
+Section~\ref{sec:model} and we consider it as a first step towards an
+intensional theory with decidable typechecking.
+
 Universal quantification over |Time| is simply done with a dependent
 function type, and the |tritk| modality is a corresponding bounded
 version. As a result the type |∀ k . tritk Nat uk| becomes |(i :
@@ -715,8 +722,7 @@ The equality rule for |fix f i| describes it as the unique function with this un
 fix f i = f i (guardt (fix f) i)
 \end{code}
 however such an equality, which is
-justified by the model, would lead to loss of strong normalization
-if used unrestricted as a computation rule, making typechecking undecidable.
+justified by the model, leads to loss of normalization making typechecking undecidable.
 We discuss possible solutions in Section \ref{sec:future}.
 
 As anticipated in Section \ref{sec:indty} we internalize with
