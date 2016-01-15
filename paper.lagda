@@ -20,7 +20,7 @@
 %-----------------------------------------------------------------------------
 
 %\nonstopmode
-\documentclass[natbib,authoryear,fleqn]{sigplanconf}
+\documentclass[natbib,authoryear,fleqn,preprint]{sigplanconf}
 % The following \documentclass options may be useful:
 
 % preprint      Remove this option only once the paper is in final form.
@@ -615,7 +615,7 @@ to express programs more directly, rather than introducing additional combinator
 The notation we have used in the examples so far is closely modeled on
 the one used in \cite{atkeyMcBride:icfp13} and \cite{mogelberg:lics2014}. In particular
 clocks are a convenient abstraction over explicitly handling time values,
-since we can use the same clock to refer to different amounts of type
+since we can use the same clock to refer to different amounts of time
 depending on the context.
 
 We can think of clock variables as indices into an environment of
@@ -631,7 +631,7 @@ So the same clock variable represents different time values in different parts o
 %%environment, while |tritk| and |tribk| locally override it with a smaller one.
 
 To clarify the flow of |Time| we instead adopt a syntax inspired by Sized
-Types \cite{Andreas}. It will also offer more flexibility in
+Types \cite{Andreas}: we give the translation for types in Figure \ref{fig:translation}. This notation will also offer more flexibility in
 the dependent case. In fact the first step is to add to the dependently
 typed language of Figure \ref{fig:TT} a new type |Time|, together with inequality
 |(i j : Time) ⊢ i ≤ j|, zero |0 : Time|, successor |↑ : Time -> Time| and a maximum operator |⊔ : Time -> Time -> Time|
@@ -1529,9 +1529,9 @@ the equations the user writes, because of this they include extra
 restrictions on when it is allowed to have a lambda abstraction over
 sizes, e.g., defining a second fixed-point combinator like the following
 \begin{code}
-fix2 :  ∀ (A : Size -> *). (∀ i. (∀ j < i. A j) -> A i)
+fix' :  ∀ (A : Size -> *). (∀ i. (∀ j < i. A j) -> A i)
        → ∀ i. A i
-fix2 A f i = f i (λ j. fix A f j)
+fix' A f i = f i (λ j. fix A f j)
 \end{code}
 would not be accepted as a definition, the typing rule for the
 abstraction over $j < i$ checks whether it is already known that $i$ is

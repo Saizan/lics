@@ -1,4 +1,21 @@
 \begin{figure}
+\[
+\def\arraystretch{1.3}
+\begin{array}{l l l}
+⟦ c ⟧_ρ &= c & c ∈ \{⊤,⊥\}\\
+⟦ A ∙ B ⟧_ρ &= ⟦ A ⟧_ρ ∙ ⟦ B ⟧_ρ & ∙ ∈ \{×,+,→\}\\
+⟦ ∀ κ. A ⟧_ρ &= ∀ i.\, ⟦ A ⟧_{(ρ, κ ↦ i)}\\
+⟦ ∃ κ. A ⟧_ρ &= ∃ i.\, ⟦ A ⟧_{(ρ, κ ↦ i)}\\
+⟦ \trit^\kappa A ⟧_ρ &= ∀ j < ρ(\kappa).\, ⟦ A ⟧_{(ρ, κ ↦ j)}\\
+⟦ \trib^\kappa A ⟧_ρ &= ∃ j < ρ(\kappa).\, ⟦ A ⟧_{(ρ, κ ↦ j)}\\
+\end{array}
+\]
+\caption{Interpretation of modalities into |Time| quantification}
+\label{fig:translation}
+\end{figure}
+
+
+\begin{figure}
 \begin{mathpar}
 \inferrule{Γ \vdash A :\Type \\ Γ ,\, x : A \vdash B :\Type}{Γ \vdash (x : A) \to B :\Type}
 \and \inferrule{Γ \vdash A :\Type \\ Γ ,\, x : A \vdash B :\Type}{Γ \vdash Σ (x : A).\, B :\Type}
