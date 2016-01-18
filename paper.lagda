@@ -37,6 +37,19 @@
 %%\newcommand{\mytodo}[2][]{\todo[color=gray!20,size=\scriptsize,fancyline,#1]{#2}}
 %%\newcommand{\redtodo}[2][]{\todo[color=red!20,size=\scriptsize,fancyline,#1]{#2}}
 \usepackage{hyperref}
+% Note that the \doi command from the doi package doesn't enable the
+% same kinds of line breaks as the command below. Note also that the
+% sigplanconf package defines a \doi command; my redefinition should
+% be placed after the use of \doi{...} above.
+\renewcommand{\doi}[1]{doi:\href{http://dx.doi.org/#1}{%
+\urlstyle{same}\nolinkurl{#1}}}
+% Turn off hyperlink borders.
+\hypersetup{pdfborder=0 0 0}
+% The pdfborderstyle option can be used to override the pdfborder
+% option, so let's set it explicitly.
+\hypersetup{pdfborderstyle={}}
+
+
 \usepackage{amsthm}
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[theorem]
@@ -1440,6 +1453,8 @@ More generally we could consider $∃ (x : A) . B = \Tr (\Sigma x :
 A. B)$. If both $A$ and $B$ belong in $\U$ then $∃ (x : A) . B$ is
 equivalent to $\Sigma (x : A) . B$, which reproduces the standard
 result about recovering strong sums from weak ones by parametricity.
+
+\subsubsection{Interpretation of the type isomorphisms}
 
 It is easy then to justify the isomorphism $∃ i . A ≅ A$ for an $A$
 that doesn't mention $i$: the equality on $\Tr (\Sigma i : Time. A)$
