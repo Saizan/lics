@@ -1195,9 +1195,9 @@ We are now ready to define $\U$ and $\El$:
 \end{array}
 \end{gather*}
 Assuming that the set-theoretic universe $\Univ$ is closed under the corresponding operations,
-the universe $\U$ is shown to contain product and sum types, natural
-numbers, to be closed under $\Sigma$ types and to contain $\Pi (x :
-A). \El~(B~x)$ for any small type $A$.
+the universe $\U$ is shown by \citep{atkey:param} to contain natural numbers
+and to be closed under product and sum types, $\Sigma$ types and to contain $\Pi (x :
+A). \El~(B[x])$ for any small type $B$.
 
 
 %% such that $(\El~A)_O$ is a family of
@@ -1455,6 +1455,9 @@ equivalent to $\Sigma (x : A) . B$, which reproduces the standard
 result about recovering strong sums from weak ones by parametricity.
 
 \subsubsection{Interpretation of the type isomorphisms}
+
+The validity in the model of the type isomorphisms from Figure
+\ref{fig:isos} follows in most cases from the properties of $\Tr$.
 
 It is easy then to justify the isomorphism $∃ i . A ≅ A$ for an $A$
 that doesn't mention $i$: the equality on $\Tr (\Sigma i : Time. A)$
