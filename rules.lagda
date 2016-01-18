@@ -54,7 +54,7 @@
 \inferrule{\Gamma ,\,i : \Time \vdash A[i] : \Type \\
            \Gamma \vdash f : \forall i .~(\forall j < i .~A[j]) \to A[i]}
                {\Gamma \vdash \mathsf{fix}~f: \forall i .~A[i]}
-\and \inferrule{f~i~(\mathsf{guard}_\flater~u~i) = u~i}{u~i = \tfix~f~i}
+\and \inferrule[Fix-Eq]{f~i~(\mathsf{guard}_\flater~u~i) = u~i}{u~i = \tfix~f~i}
 \end{mathpar}
 where
 \[

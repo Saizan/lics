@@ -52,6 +52,7 @@
 
 \usepackage{amsthm}
 \newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}{Proposition}[section]
 \newtheorem{corollary}{Corollary}[theorem]
 \newtheorem{lemma}[theorem]{Lemma}
 
@@ -900,7 +901,7 @@ An |X|-indexed functor |F| is then a pair of terms
 Γ ⊢ F₁ :  (A B : X -> U) ->
           (A ⇒ B) -> (F A ⇒ F B)
 \end{code}
-such that |F₁| preserves identities and composition.
+such that |F₁| preserves identities and composition up to judgemental equality.
 
 As an example we can make |∃ j < i.| into a |(Time × X)|-indexed
 functor by defining |trib| like so:
@@ -924,14 +925,15 @@ mutri F (i , x) = fix (\ i A x . F (\ y. ∃ j < i . A (j , x)) i x
 \end{code}
 so that |mutri F = F[trib mutri F]|.
 
-The algebra |F[trib mutri F] ⇒ mutri F| is then simply the identity
-and the morphism from any other algebra |f : F[trib A] ⇒ A| is also definable through
-|fix|, which also ensures its uniqueness.
+The algebra |F[trib mutri F] ⇒ mutri F| is then the identity.
+We define the universal morphism from any other algebra |f : F[trib A] ⇒ A| through
+|fix|.
 \begin{code}
 foldtri :  (A : Time × X → U) ->
            (F[trib A] ⇒ A) → mutri F ⇒ A
 foldtri A f (i , x) = fix (\ i foldtri m. f (F (foldtri star) m)) i x
 \end{code}
+The uniqueness of |foldtri| follows from the rule Fix-Eq.
 
 \subsection{Initial Algebras}
 
@@ -1090,10 +1092,10 @@ which we do not repeat the full definition but the main components are
 \end{itemize}
 The category $\CxtF$ in our case is the functor category $\CSet^\RG$,
 where $\RG$ is the small category with two objects, two parallel arrows, and a common section. Since
-$\CxtF$ is a functor category into $\CSet$ it inherits a standard
+$\CxtF$ is a presheaf category it inherits a standard
 Category with Families structure \cite{Hofmann} including definitions
 for the standard connectives, most of them lifted pointwise from
-\CSet, here we will mention only enough to explain our own connectives.
+\CSet. Here we will mention only enough to explain our own connectives.
 
 An object $\Gamma$ of $\CxtF$ is best thought of as a triple $(\Gamma_O, \Gamma_R,
 \Gamma_{\refl})$ where $\Gamma_O$ is a set of objects, $\Gamma_R$ is a binary
@@ -1125,18 +1127,8 @@ graphs: a semantic type $A \in \TyF \Gamma$ is also a triple $(A_O,A_R,A_{\refl}
 but each component is indexed by the corresponding one from $\Gamma$, allowing types to depend on values from the environment.
 \begin{gather*}
 A_O : \Gamma_O \to Set \\
-A_R : \forall \gamma_0 , \gamma_1 \in \Gamma,\; \Gamma_R(\gamma_0,\gamma_1) \to A_O(\gamma_0) × A_O(\gamma_1) \to Set \\
-A_{\refl} : \forall \gamma \in \Gamma,\; \forall a \in A_O(\gamma).\; A_R(\Gamma_{\refl}(\gamma),a,a)
-\end{gather*}
-
-A semantic term $M \in \TmF \Gamma A$ correponds in principle to a
-map $\Gamma \to \Gamma.A$ such that $\tfst \circ M = id_\Gamma$. It is
-however defined explicitly as a pair of the following components:
-\begin{gather*}
-M_o : \forall \gamma \in \Gamma_O, \; A_O(\gamma)\\
-M_r : \forall \gamma_0, \gamma_1 \in \Gamma_O, \; \forall \gamma_r \in \Gamma_R(\gamma_0,\gamma_1), \; A_R(\gamma_r,M_o(\gamma_0),M_o(\gamma_1)) \\
-\mbox{such that}\\
-\forall \gamma \in \Gamma_O, \; M_r (\Gamma_{\refl}(\gamma)) = A_{\refl}(\Gamma_{\refl}(\gamma),M_o (\gamma))\\
+A_R : \forall \gamma_0 , \gamma_1 \in \Gamma_O,\; \Gamma_R(\gamma_0,\gamma_1) \to A_O(\gamma_0) × A_O(\gamma_1) \to Set \\
+A_{\refl} : \forall \gamma \in \Gamma_O,\; \forall a \in A_O(\gamma).\; A_R(\Gamma_{\refl}(\gamma),a,a)
 \end{gather*}
 
 The empty context $\epsilon \in \Obj(\CxtF)$ is defined as the
@@ -1154,6 +1146,16 @@ obtain another context $\Gamma.A$ by pairing up each component.
 We then have a map $\tfst : \Gamma.A \to \Gamma$ which projects out the
 first component and has the role of a weakening substitution.
 
+A semantic term $M \in \TmF \Gamma A$ correponds in principle to a
+map $\Gamma \to \Gamma.A$ such that $\tfst \circ M = id_\Gamma$. It is
+however defined explicitly as a pair of the following components:
+\begin{gather*}
+M_o : \forall \gamma \in \Gamma_O, \; A_O(\gamma)\\
+M_r : \forall \gamma_0, \gamma_1 \in \Gamma_O, \; \forall \gamma_r \in \Gamma_R(\gamma_0,\gamma_1), \; A_R(\gamma_r,M_o(\gamma_0),M_o(\gamma_1)) \\
+\mbox{such that}\\
+\forall \gamma \in \Gamma_O, \; M_r (\Gamma_{\refl}(\gamma)) = A_{\refl}(\Gamma_{\refl}(\gamma),M_o (\gamma))\\
+\end{gather*}
+
 
 \subsection{A Small, Discrete, Proof Irrelevant Universe}
 
@@ -1165,7 +1167,7 @@ In particular for each $A \in \TmF \Gamma \U$ we get a type $\El~A \in
 \TyF \Gamma$ such that $(\El~A)_R(\Gamma_{\refl}(\gamma))$
 is the equality relation of $(\El~A)_O(\gamma)$, up to isomorphism.
 
-Fixing a set-theoretic universe $\Univ$, we can define the following properties of reflexive graphs:\\
+Fixing a set-theoretic universe $\Univ$, we can define the following properties of reflexive graphs:
 %%% TODO use environment
 %% Section 4.2. "Definition" ought to be in bold. Also, in the definition
 %% of U_R, why not just say that |R(a,b)| <= 1, instead of the
@@ -1184,8 +1186,8 @@ We are now ready to define $\U$ and $\El$:
 \multicolumn{3}{l}{\U \in \TyF \Gamma}\\
 \U_O(\gamma) &=& \mbox{the set of small discrete reflexive graphs}\\
 \U_R(\gamma_r)(A,B) &=& \{R : A_O \to B_O \to Set \mid\\
-  &&\hphantom{\{}\forall a \in A_O, b \in B_O, R(a,b) \in \Univ\\
-  &&\hphantom{\{}\mbox{, the map } R(a,b) \to \{*\}\mbox{ is injective } \}\\
+  &&\hphantom{\{}\forall a \in A_O, b \in B_O, R(a,b) \in \Univ,\\
+  &&\hphantom{\{}\mbox{the map } R(a,b) \to \{*\}\mbox{ is injective } \}\\
 \U_{\refl}(\gamma)(A) &=& A_R\\
 \\
 \multicolumn{3}{l}{\El \in \TyF {\Gamma.\U}}\\
@@ -1197,7 +1199,7 @@ We are now ready to define $\U$ and $\El$:
 Assuming that the set-theoretic universe $\Univ$ is closed under the corresponding operations,
 the universe $\U$ is shown by \citep{atkey:param} to contain natural numbers
 and to be closed under product and sum types, $\Sigma$ types and to contain $\Pi (x :
-A). \El~(B[x])$ for any small type $B$.
+A).~\El~(B[x])$ for any small type $A$.
 
 
 %% such that $(\El~A)_O$ is a family of
@@ -1205,50 +1207,48 @@ A). \El~(B[x])$ for any small type $B$.
 %% for all $\gamma \in \Gamma_O$ we have that $(\El~A)_R(\Gamma_{\refl}(\gamma))$
 %% is the equality relation of $(\El~A)_O(\gamma)$.Where the latter two requirements are to be considered up to isomorphism.
 
-\subsubsection{Invariance through Discreteness}
-\label{sec:inv-disc}
+%% \subsubsection{Invariance through Discreteness}
+%% \label{sec:inv-disc}
 
-One main feature of $\U$ is exemplified by considering a term $M \in
-\TmF{\Gamma.A}{(\El~B)\{\tfst\}}$, i.e., where the type of the result is in the universe
-and does not depend on $A$.
-
-\begin{lemma}
-\label{lem:inv-disc}
-Let $A \in \TyF \Gamma$, $B \in \TmF \Gamma \U$, and $M \in
-\TmF{\Gamma.A}{(\El~B)\{\tfst\}}$ then
-\begin{gather*}
-\forall \gamma \in \Gamma_O, \;
-      \forall a_0, a_1 \in A_O(\gamma), \;
-      \forall a_r \in \A_R(\Gamma_{\refl}(\gamma),a_0,a_1), \; \\
-        M_o(\gamma,a_0) = M_o(\gamma,a_1)
-\end{gather*}
-\end{lemma}
 %% One main feature of $\U$ is exemplified by considering a term $M \in
-%% \TmF{\Gamma.A}{(\El~B)\{\tfst\}}$ where $A \in \TyF \Gamma$ and $B \in
-%% \TmF \Gamma \U$, i.e. where the type of the result is in the universe
+%% \TmF{\Gamma.A}{(\El~B)\{\tfst\}}$, i.e., where the type of the result is in the universe
 %% and does not depend on $A$.
-\begin{proof}
-Unfolding the application of $\tfst$ and unpacking the environment for $\Gamma.A$ we get the following for the components of $M$.
-The condition of commuting with reflexivity is between two elements of
-a proof-irrelevant relation, so can be omitted. %% TODO the condition of commuting?
-\[
-\begin{array}{l c l}
-M_o &:& \forall \gamma \in \Gamma_O, \; \forall a \in A_O(\gamma), \; (\El~B)_O(\gamma) \\
-M_r &:& \forall \gamma_0, \gamma_1 \in \Gamma_O, \;
-      \forall \gamma_r \in \Gamma_R(\gamma_0,\gamma_1), \; \\
-      & &\forall a_0 \in A_O(\gamma_0), a_1 \in A_O(\gamma_1), \;
-      \forall a_r \in \A_R(\gamma_r,a_0,a_1), \; \\
-       & &(\El~B)_R(\gamma_r, M_o(\gamma_0,a_0), M_o(\gamma_1,a_1))\\
-\end{array}
-\]
-We see that the result of $M_r$ does not mention $a_r$ because $\El~B$ does not depend on $A$, moreover if
-we specialize $\gamma_r$ to $\Gamma_{\refl}(\gamma)$ we get $(\El~
-B)_R(\Gamma_{\refl}(\gamma), M_o(\gamma,a_0), M_o(\gamma,a_1))$, which we
-know to be isomorphic to $M_o(\gamma,a_0) = M_o(\gamma,a_1)$ so we have our result.
-\end{proof}
 
-In other words, for a fixed $\gamma$, we have that $M_o$ considers any
-two related $a_i$ as being equal, since it returns the same result.
+%% \begin{lemma}
+%% \label{lem:inv-disc}
+%% Let $A \in \TyF \Gamma$, $B \in \TmF \Gamma \U$, and $M \in
+%% \TmF{\Gamma.A}{(\El~B)\{\tfst\}}$ then
+%% \begin{gather*}
+%% \forall \gamma \in \Gamma_O, \;
+%%       \forall a_0, a_1 \in A_O(\gamma), \;
+%%       \forall a_r \in \A_R(\Gamma_{\refl}(\gamma),a_0,a_1), \; \\
+%%         M_o(\gamma,a_0) = M_o(\gamma,a_1)
+%% \end{gather*}
+%% \end{lemma}
+%% %% One main feature of $\U$ is exemplified by considering a term $M \in
+%% %% \TmF{\Gamma.A}{(\El~B)\{\tfst\}}$ where $A \in \TyF \Gamma$ and $B \in
+%% %% \TmF \Gamma \U$, i.e. where the type of the result is in the universe
+%% %% and does not depend on $A$.
+%% \begin{proof}
+%% Unfolding the application of $\tfst$ and unpacking the environment for $\Gamma.A$ we get the following for the components of $M$:
+%% \[
+%% \begin{array}{l c l}
+%% M_o &:& \forall \gamma \in \Gamma_O, \; \forall a \in A_O(\gamma), \; (\El~B)_O(\gamma) \\
+%% M_r &:& \forall \gamma_0, \gamma_1 \in \Gamma_O, \;
+%%       \forall \gamma_r \in \Gamma_R(\gamma_0,\gamma_1), \; \\
+%%       & &\forall a_0 \in A_O(\gamma_0), a_1 \in A_O(\gamma_1), \;
+%%       \forall a_r \in A_R(\gamma_r,a_0,a_1), \; \\
+%%        & &(\El~B)_R(\gamma_r, M_o(\gamma_0,a_0), M_o(\gamma_1,a_1))\\
+%% \end{array}
+%% \]
+%% We see that the result of $M_r$ does not mention $a_r$ because $\El~B$ does not depend on $A$, moreover if
+%% we specialize $\gamma_r$ to $\Gamma_{\refl}(\gamma)$ we get $(\El~
+%% B)_R(\Gamma_{\refl}(\gamma), M_o(\gamma,a_0), M_o(\gamma,a_1))$, which we
+%% know to be isomorphic to $M_o(\gamma,a_0) = M_o(\gamma,a_1)$ so we have our result.
+%% \end{proof}
+
+%% In other words, for a fixed $\gamma$, we have that $M_o$ considers any
+%% two related $a_i$ as being equal, since it returns the same result.
 
 %% Another important feature of $\U$ corresponds to Reynolds' identity
 %% extension lemma. In fact a map like $T : \U \to \U$, which could
@@ -1261,25 +1261,25 @@ We are left with having to interpret our own primitives.
 \subsubsection{|Time|}
 
 The type |Time| is intepreted as the reflexive graph of natural
-numbers with $n \le m$ as the relation. Assuming that $ℕ \in \Univ$ we
+numbers with the total relation. Assuming that $ℕ \in \Univ$ we
 have that $\Time$ is small, but not discrete.
 \begin{gather*}
 \begin{array}{l c l}
 \Time \in \TyF\epsilon\\
 \Time_O &=& ℕ\\
-\Time_R(n,m) &=& \{ * \mid n \le m \}\\
+\Time_R(n,m) &=& \{ * \}\\
 \Time_{\refl}(n) &=& *\\
 \end{array}
 \end{gather*}
 The terms for |0| and |↑| are implemented by $0$ and $+1$ on the underlying naturals, and |⊔| by taking the maximum.
 
-The use of $\le$ as relation instead of $=$ is how we encode the
-invariance with respect to time values that we want in the model.
-In fact from Lemma \ref{lem:inv-disc} it follows that
-that a term $M \in \TmF {\Gamma.\Time} {(\El~B)\{\tfst\}}$ is
-going to produce the same result no matter what natural number it gets
-from the environment, since they are all related, which justifies the isomorphism $∀ i. \El~
-B ≅ \El~B$ of the language.\mytodo{mention that Pi types are naturally isomorphic to open terms?}
+Having $\Time_R$ relate any pair of values is how we encode the
+invariance with respect to time that we want in the model as we show in Section~\ref{sec:isoproofs}.
+%% In fact from Lemma \ref{lem:inv-disc} it follows that
+%% that a term $M \in \TmF {\Gamma.\Time} {(\El~B)\{\tfst\}}$ is
+%% going to produce the same result no matter what natural number it gets
+%% from the environment, since they are all related, which justifies the isomorphism $∀ i. \El~
+%% B ≅ \El~B$ of the language.\mytodo{mention that Pi types are naturally isomorphic to open terms?}
 
 The relation between times |i ≤ j| is intepreted by\\ $\Le \,\, \in \TyF
 {\Time.\Time\{\tfst\}}$, which also fits in $\U$ since it has no
@@ -1296,17 +1296,25 @@ The fixpoint operator |fix| and its uniqueness are implemented through
 well-founded induction on the natural numbers.
 %%In particular given $f \in \TmF {\Gamma.Time.
 
+\begin{definition}(∀ i) Let $\Gamma$ be a semantic context and $B \in \TmF {\Gamma.\Time} \U$ we define $∀ B = \Pi~\Time~B \in \TmF \Gamma \U$.
+\end{definition}  
 \subsubsection{Representationally Independent Existential}
 
-We will ultimately define the existential quantification over |Time|
-in the same style as a parametric colimit in the sense of
+We will interpret the existential quantification over |Time|
+in a way that corresponds to a parametric colimit in the sense of
 \cite{parametric-limits}. However we will show a connection with the standard $\Sigma$ type by
 first defining a general operation to convert any small reflexive
 graph into a discrete and proof-irrelevant one.
 
 Given a small $A \in \TyF \Gamma$ we define $\Tr A \in \TmF \Gamma \U$
-which we call the discrete truncation of $A$.We first give some preliminary definitions on reflexive graphs, and
-then lift those to the case of families to define $\Tr$.
+which we call the discrete truncation of $A$. On closed types $(\El
+(\Tr A))_O$ is the colimit of $A$ as a diagram from $\RG$ and more
+generally it will have the following universal property $\TmF \Gamma {A \to \El B} ≅ \TmF
+\Gamma {\El~(\Tr A) \to \El B}$.
+
+To give an explicit construction for $\Tr A$ we first present some
+preliminary definitions on reflexive graphs and then lift those to the
+case of families.
 
 For a reflexive graph $A \in \Obj(\CxtF)$ we define $\rt A$ to be the
 set obtained by quotienting $A_O$ with $A_R^\st$, which is how we denote the symmetric transitive closure of $A_R$.
@@ -1338,8 +1346,6 @@ produce logically equivalent relations for related elements.
 We note that $\LiftF_{A,B}(R)$ is proof irrelevant by construction,
 since we define it as a quotient with the total relation which we name $\top$,
 and that $\LiftF_{(A,A)}(A_R)$ is logically equivalent to the equality relation on $\rt A$.
-
-\mytodo{prove? could be lifted from Uday Reddy}
 
 Finally we define $\Tr A$ for a given $A \in Ty(\Gamma)$:
 \begin{gather*}
@@ -1410,7 +1416,7 @@ $\gamma_r = \Gamma_{\refl}(\gamma)$ and obtain
 To use the discreteness of $(\El~B)$ we need the environment to be
 obtained by reflexivity of $(\Gamma.\Tr A)$, so we need $\tr_r(a_r) =
 (\Tr A)_{\refl}(a_0)$, and that follows from the proof-irrelevance of
-$(\Tr A)_R$ and the fact that $\tr_o(a_0)$ equals $\tr_r(a_1)$.
+$(\Tr A)_R$ and the fact that $\tr_o(a_0)$ equals $\tr_o(a_1)$.
 Hence from discreteness $(\El
 B)_R(\Gamma_{\refl}(\gamma),\tr_r(a_r))$ is equivalent to equality on
 $(\El~B)_O(\gamma,\tr_o(a_0))$ and we can conclude:
@@ -1435,7 +1441,7 @@ belongs in
 We know that
 \[ t_r(\gamma_r,r) \in (\El~B)_R(\gamma_r,\liftF(r)),
 t_o(\gamma_0,a'), t_o(\gamma_1,b')) \]
-and from \ref{eq:respect} we know that
+and from \eqref{eq:respect} we know that
 \[ t_o(\gamma_0,a) = t_o(\gamma_0,a')\] and
 \[t_o(\gamma_1,b) = t_o(\gamma_1,b')\] so we also have \[ t_r(\gamma_r,r)
 \in (\El~B)_R(\gamma_r,\liftF(r)), t_o(\gamma_0,a), t_o(\gamma_1,b))\]
@@ -1445,7 +1451,7 @@ we obtain the result we wanted.
 
 To define the existential we can then truncate the
 corresponding $\Sigma$ type,
-\[ ∃ i . A = \Tr (\Sigma i : \Time. A) \]
+\[ ∃~A = \Tr (\Sigma~\Time~A) \]
 so that |(pack i a)| is interpreted as the introduction for $\Sigma$
 followed by $\tr$, while the case expression is interpreted as $\elim$
 combined with the projections of $\Sigma$.
@@ -1455,14 +1461,62 @@ equivalent to $\Sigma (x : A) . B$, which reproduces the standard
 result about recovering strong sums from weak ones by parametricity.
 
 \subsubsection{Interpretation of the type isomorphisms}
-
+\label{sec:isoproofs}
 The validity in the model of the type isomorphisms from Figure
 \ref{fig:isos} follows in most cases from the properties of $\Tr$.
+In the following we write $A ≅_\Gamma B$ for $\TmF \Gamma A ≅ \TmF \Gamma B$.
+\begin{lemma}
+  \label{lem:codisc}
+  The following isomorphisms are valid in the model:
+  \begin{itemize}
+  \item $\El~(\Tr~\Time) ≅_\Gamma ⊤$
+  \item For any $j_A,j_B : \TmF \Gamma \Time$, $\El~(∃ i.~ j_A < i × j_B < i) ≅_\Gamma ⊤$
+  \end{itemize}
+\end{lemma}
+\begin{proof}
+  In both cases the types on the left are of the form $\El~(\Tr~A)$
+  for a family of reflexive graphs $A$ where every two objects are
+  related and is inhabited. From this follows that $(\El~(\Tr~A))_O$
+  is a singleton set.
+\end{proof}
 
-It is easy then to justify the isomorphism $∃ i . A ≅ A$ for an $A$
-that doesn't mention $i$: the equality on $\Tr (\Sigma i : Time. A)$
-ignores the $\Time$ fields because any two time values are related in
-some direction.
+\begin{proposition}
+  The isomorphisms from Figure \ref{fig:isos} are validated by the
+  reflexive graph model.
+\end{proposition}
+\begin{proof}
+  For reasons of space we only provide proofs for some of the
+  isomorphisms, the others also similarly rely on the interaction
+  between $\Tr$ and $\Time$.\\
+
+  \setlength{\tabcolsep}{2pt}
+  \begin{tabular}{lll}
+  $\El~(∃ i.~A)$&$≅$& (by $\Sigma~\_ : \Time.~X ≅ \Time × X$)\\
+  $\El~(\Tr~(\Time × \El~A)) $&$≅$& (by distributivity of $\Tr$ and $×$)\\
+  $\El~(\Tr~\Time × \Tr~A) $&$≅$& (by Lemma \ref{lem:codisc})\\
+  $\El~(⊤ × A) $&$≅$\\
+  $\El~A$&\\
+  \end{tabular}
+
+  \begin{tabular}{lll}
+  $∀ i.~\El~A$&$≅$&(by $\Pi~\_ : \Time.~A ≅ \Time \to A$)\\
+  $\Time \to \El~A$&$≅$& (by the universal property of $\Tr$)\\
+  $\El~(\Tr~\Time) \to \El~A$&$≅$& (by Lemma \ref{lem:codisc})\\
+  $⊤ \to \El~A$&$≅$&\\
+  $\El~A$\\
+  \end{tabular}
+  %% \vspace{20pt}
+  %% \begin{tabular}{lll}
+  %% $(∃ i.~A[i]) × (∃ i.~B[i])$&$≅$&\\
+  %% $∃ j_A.~∃ j_B.~⊤ × A[j_A] × B[j_B]$&$≅$& (by Lemma \ref{lem:codisc})\\
+  %% \multicolumn{3}{l}{$∃ j_A.~∃ j_B.~(∃ i.~ j_A < i × j_B < i) × A[j_A] × B[j_B] ≅$}\\
+  %% $∃ i.~(∃ j.~j < i × A[j]) × (∃ j.~j < i × B[j])$\\
+  %% \end{tabular}
+\end{proof}
+%% It is easy then to justify the isomorphism $∃ i . A ≅ A$ for an $A$
+%% that doesn't mention $i$: the equality on $\Tr (\Sigma i : \Time.~A)$
+%% ignores the $\Time$ fields because any two time values are related in
+%% some direction.
 
 \section{Related Works}
 
