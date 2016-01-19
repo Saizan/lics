@@ -307,7 +307,7 @@ mapRT f (Node a ts)
   = Node (f a) (map (\ t . mapRT f t) ts)
 \end{code}
 The definition of mapRT is not accepted because syntactically |t| has
-no relation to |Node a ts|, we need to pay attention to the semantics of
+no relation to |Node a ts|. We need to pay attention to the semantics of
 |map| to accept this definition as terminating, in fact a common
 workaround is to essentially inline the code for |map|\footnote{If the definition of |map| is available, Coq will attempt this automatically}.
 \begin{code}
@@ -370,7 +370,7 @@ The basic principle of Guarded Recursion is to keep track of the
 termination information in the types. Going back to the rose tree
 example we can give the data constructor |Node| a more precise type.
 \begin{code}
-Node : A -> (List (trib RoseTree A)) → RoseTree A
+Node : A -> List (trib (RoseTree A)) → RoseTree A
 \end{code}
 We use the modality |trib| to explicitly mark the recursive occurrence
 of |RoseTree A|. Because of this the subtrees have a type that differs from the
@@ -410,7 +410,7 @@ Often we will leave the clocks implicit at the level of terms, however where app
 (pack) : ∀ k . (A hk -> ∃ k . A hk)
 \end{code}
 The proper type of |Node| will then have a clock indexing the result
-type, which becomes |RoseTree uk A| i.e. the type of trees bounded by
+type, which becomes |RoseTree uk A|, i.e., the type of trees bounded by
 the clock |k|.
 \begin{code}
 Node : ∀ k . A → List (tribk RoseTree uk A) → RoseTree uk A
@@ -433,7 +433,7 @@ Node : ∀ k . A → List (tribk RoseTree uk A) → RoseTree uk A
 \subsection{Fixedpoint combinators}
 \label{fixb}
 
-So far we have seen directly recursive definitions, here we show the
+So far, we have seen directly recursive definitions, here we show the
 fixed point combinator they are based on and how it is derived from
 a more general one.
 
@@ -450,7 +450,7 @@ recurse on one of their arguments.
 %% tribk A ~ this A can be consumed in less time than you have left
 %% tritk A ~ you need to spend some time to get at this A
 
-More generally though we also want to support cases of productive
+More generally, though, we also want to support cases of productive
 value recursion, like Haskell's |ones = 1 : ones|, as in the previous
 works on guarded recursion. For this purpose we make use of the modality
 |tritk|, the dual of |tribk|, to guard the recursion.
@@ -464,11 +464,11 @@ With a suitable type |Stream uk| we can then define |ones|.
 cons : ∀ k . A -> tritk Stream uk A  -> Stream uk A
 
 ones : ∀ k . Stream uk Nat
-ones = fix (λ k xs . cons 1 xs)
+ones = fix (λ k xs . cons k 1 xs)
 \end{code}
 
 Other examples involving |tritk| can be found in previous work that
-focuses on coinduction \cite{atkeyMcBride:icfp13} \cite{mogelberg:csllics14}. An important
+focuses on coinduction \cite{atkeyMcBride:icfp13,mogelberg:csllics14}. An important
 difference is that in the present work |tritk| is no longer a full
 applicative functor.
 In fact while we do still support |<*>|,
@@ -496,11 +496,10 @@ an argument at some time in the future |tribk A|, we can apply one to the other 
 star : ∀ k . tritk (A -> B) -> tribk A hk -> tribk B hk
 \end{code}
 which in particular can be used to define |fixb| in terms of
-|fix|
+|fix|:
 \begin{code}
 fixb f = fix (λ k r . f k (λ x . r stark x))
 \end{code}
-
 Lastly, as a dual of |pure|, we have |extract|,
 \[
 \begin{array}{l r}
@@ -559,7 +558,7 @@ it synchronized with the clock |k| given to the function we unfold.
 In previous work on guarded recursion, coinductive types were obtained
 by universal clock quantification over their guarded variant, e.g. |∀
 k . Stream uk Nat| would be the type of coinductive streams. In the
-present work we are able to dualize that result and obtain inductive types by
+present work, we are able to dualize that result and obtain inductive types by
 existential quantification of the guarded variant, e.g. |∃ k . Nat
 uk|.
 
@@ -571,7 +570,6 @@ Here we show the natural numbers as the simplest example. The guarded
 version |Nat uk| is defined using a sum type, to encode the two
 constructors, and inserting |tribk| in front of the recursive
 occurrence of |Nat uk|.
-
 \begin{code}
 Nat uk   = ⊤ + tribk Nat uk
 Zero uk : Nat uk
@@ -579,7 +577,6 @@ Zero uk  = inl tt
 Suc uk : tribk Nat uk -> Nat uk
 Suc uk   = λ n . inr n
 \end{code}
-
 Now we can bind the clock variable with an existential to define
 \begin{code}
 Nat = ∃ k . Nat uk
@@ -648,7 +645,7 @@ To clarify the flow of |Time| we instead adopt a syntax inspired by Sized
 Types \cite{abelPientka:icfp13}: we give the translation for types in Figure \ref{fig:translation}. This notation will also offer more flexibility in
 the dependent case. In fact the first step is to add to the dependently
 typed language of Figure \ref{fig:TT} a new type |Time|, together with inequality
-|(i j : Time) ⊢ i ≤ j|, zero |0 : Time|, successor |↑ : Time -> Time| and a maximum operator |⊔ : Time -> Time -> Time|
+|(i j : Time) ⊢ i ≤ j|, zero |0 : Time|, successor |↑ : Time -> Time| and a maximum operator\\ |⊔ : Time -> Time -> Time|
 (Figure \ref{fig:Time}).
 
 The theory we will present does not support decidable typechecking and
@@ -778,7 +775,7 @@ The limitation to only finite |El A| in the isomorphism
 \end{code}
 is because, to go from right to left, we need to find a |i| which is
 an upper bound for all the |j|s returned by the function $(x : \El~A) \to
-∃ j .~B$ across the whole domain $\El~A$. However given only |⊔| we can
+∃~j .~B$ across the whole domain $\El~A$. However given only |⊔| we can
 only compute the upper bound of finitely many time values.  We did not
 introduce a $\mathsf{limit} : (A \to \Time) \to \Time$ operator because |A| might
 contain |Time| itself, and that would have led to impredicativity
@@ -791,14 +788,11 @@ restriction in further work.
 
 \section{Inductive Types}
 \label{sec:induction}
-
 In this section we will show how to implement the recursive type
 equations we have used in terms of fixed points on the universe, then
 the induction principle for |Nat|, and lastly we construct an initial
 algebra for any functor that properly commutes with |∃ i|.
-
 \subsection{Recursive Type Equations}
-
 For any function |F : U -> U| we can build |Fixb F : Time -> U| such
 that |Fixb F i = F (∃ j < i. Fixb F j)|.
 
@@ -958,16 +952,23 @@ Let |F| be an |X|-indexed functor that weakly commutes with |∃
 i|, then |mu F x = ∃ i. mutri F (i , x)| is the initial algebra of
 |F|.
 \end{theorem}
-Proof (Sketch). From |F| weakly commuting with |∃ i| at type |mutri F| we
+Proof. From |F| weakly commuting with |∃ i| at type |mutri F| we
 obtain an indexed isomorphism |F (mu F) ≅ mu F| and so in particular
+<<<<<<< HEAD
 an algebra |F (mu F) ⇒ F|, the morphism from any other algebra is
 obtained from the one for |mutri| and inherits his uniqueness since
 there's a bijection between algebra morphisms like in \cite{mogelberg:csllics14}.
+=======
+an algebra |F (mu F) ⇒ F|, the universal morphism is
+obtained from the one for |mutri|:
+>>>>>>> 8f40427504b66ca54e04f1137627d7e088aadcd0
 \begin{code}
 fold : (A : I → U) -> (F A ⇒ A) → (mu F ⇒ A)
 fold A f x (pack i m) = foldtri (\ (i , x) → A x)
                                 (λ j m → f (F extract m)) i x m
 \end{code}
+The uniqueness of |fold| is inherited from |foldtri| because any
+algebra morphism from |mu F| can be turned into one from |mutri F|.
 
 To determine whether a functor |F| weakly commutes with |∃ i| we make
 use of the isomorphisms of Figure \ref{fig:isos}, in particular we can
@@ -1296,7 +1297,7 @@ The fixpoint operator |fix| and its uniqueness are implemented through
 well-founded induction on the natural numbers.
 %%In particular given $f \in \TmF {\Gamma.Time.
 
-\begin{definition}(∀ i) Let $\Gamma$ be a semantic context and $B \in \TmF {\Gamma.\Time} \U$ we define $∀ B = \Pi~\Time~B \in \TmF \Gamma \U$.
+\begin{definition}(∀ i) Let $\Gamma$ be a semantic context and $B \in \TmF {\Gamma.\Time} \U$ we define semantic universal |Time| quantification as $∀~B = \Pi~\Time~B \in \TmF \Gamma \U$.
 \end{definition}
 \subsubsection{Representationally Independent Existential}
 
@@ -1450,9 +1451,10 @@ we obtain the result we wanted.
 
 
 To define the existential we can then truncate the
-corresponding $\Sigma$ type,
-\[ ∃~A = \Tr~(\Sigma~\Time~A) \]
-so that |(pack i a)| is interpreted as the introduction for $\Sigma$
+corresponding $\Sigma$ type.
+\begin{definition}(∃ i) Let $\Gamma$ be a semantic context and $B \in \TmF {\Gamma.\Time} \U$ we define semantic existential |Time| quantification as $∃~B = \Tr~(\Sigma~\Time~A) \in \TmF \Gamma \U$.
+\end{definition}
+In particular |(pack i a)| is interpreted as the introduction for $\Sigma$
 followed by $\tr$, while the case expression is interpreted as $\elim$
 combined with the projections of $\Sigma$.
 More generally we could consider $∃~A~B = \Tr~(\Sigma A B)$. If both $A$ and $B$ belong in $\U$ then $∃~A~B$ is
@@ -1462,7 +1464,7 @@ result about recovering strong sums from weak ones by parametricity.
 \subsubsection{Interpretation of the type isomorphisms}
 \label{sec:isoproofs}
 The validity in the model of the type isomorphisms from Figure
-\ref{fig:isos} follows in most cases from the properties of $\Tr$.
+\ref{fig:isos} follows from basic properties of $\Tr$ and its interaction with $\Time$.
 In the following we write $A ≅_\Gamma B$ for $\TmF \Gamma A ≅ \TmF \Gamma B$.
 \begin{lemma}
 \label{lem:codisc}
