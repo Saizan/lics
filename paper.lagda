@@ -307,7 +307,7 @@ mapRT f (Node a ts)
   = Node (f a) (map (\ t . mapRT f t) ts)
 \end{code}
 The definition of mapRT is not accepted because syntactically |t| has
-no relation to |Node a ts|, we need to pay attention to the semantics of
+no relation to |Node a ts|. We need to pay attention to the semantics of
 |map| to accept this definition as terminating, in fact a common
 workaround is to essentially inline the code for |map|\footnote{If the definition of |map| is available, Coq will attempt this automatically}.
 \begin{code}
@@ -370,7 +370,7 @@ The basic principle of Guarded Recursion is to keep track of the
 termination information in the types. Going back to the rose tree
 example we can give the data constructor |Node| a more precise type.
 \begin{code}
-Node : A -> (List (trib RoseTree A)) → RoseTree A
+Node : A -> List (trib (RoseTree A)) → RoseTree A
 \end{code}
 We use the modality |trib| to explicitly mark the recursive occurrence
 of |RoseTree A|. Because of this the subtrees have a type that differs from the
@@ -410,7 +410,7 @@ Often we will leave the clocks implicit at the level of terms, however where app
 (pack) : ∀ k . (A hk -> ∃ k . A hk)
 \end{code}
 The proper type of |Node| will then have a clock indexing the result
-type, which becomes |RoseTree uk A| i.e. the type of trees bounded by
+type, which becomes |RoseTree uk A|, i.e., the type of trees bounded by
 the clock |k|.
 \begin{code}
 Node : ∀ k . A → List (tribk RoseTree uk A) → RoseTree uk A
@@ -450,7 +450,7 @@ recurse on one of their arguments.
 %% tribk A ~ this A can be consumed in less time than you have left
 %% tritk A ~ you need to spend some time to get at this A
 
-More generally though we also want to support cases of productive
+More generally, though, we also want to support cases of productive
 value recursion, like Haskell's |ones = 1 : ones|, as in the previous
 works on guarded recursion. For this purpose we make use of the modality
 |tritk|, the dual of |tribk|, to guard the recursion.
@@ -464,11 +464,11 @@ With a suitable type |Stream uk| we can then define |ones|.
 cons : ∀ k . A -> tritk Stream uk A  -> Stream uk A
 
 ones : ∀ k . Stream uk Nat
-ones = fix (λ k xs . cons 1 xs)
+ones = fix (λ k xs . cons k 1 xs)
 \end{code}
 
 Other examples involving |tritk| can be found in previous work that
-focuses on coinduction \cite{atkeyMcBride:icfp13} \cite{mogelberg:lics2014}. An important
+focuses on coinduction \cite{atkeyMcBride:icfp13,mogelberg:lics2014}. An important
 difference is that in the present work |tritk| is no longer a full
 applicative functor.
 In fact while we do still support |<*>|,
@@ -496,11 +496,10 @@ an argument at some time in the future |tribk A|, we can apply one to the other 
 star : ∀ k . tritk (A -> B) -> tribk A hk -> tribk B hk
 \end{code}
 which in particular can be used to define |fixb| in terms of
-|fix|
+|fix|:
 \begin{code}
 fixb f = fix (λ k r . f k (λ x . r stark x))
 \end{code}
-
 Lastly, as a dual of |pure|, we have |extract|,
 \[
 \begin{array}{l r}
