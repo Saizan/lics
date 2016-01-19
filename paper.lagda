@@ -1518,7 +1518,7 @@ singleton set.
 
 \section{Related Works}
 
-The application of Nakano's guard modality\cite{Nakano} to coinductive types
+The application of Nakano's guard modality \cite{nakano:lics00} to coinductive types
 started with \cite{atkeyMcBride:icfp13} by the introduction of clock
 variables to an otherwise simply typed language, \cite{mogelberg:lics2014}
 extended this result to a dependently typed setting where guarded
