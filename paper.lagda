@@ -278,7 +278,8 @@ Dependent Type Theory, Guarded Recursion, Induction, Coinduction, Type-based ter
 
 \section{Introduction}
 
-The standard termination checkers of systems like Coq or Agda rely on
+The standard termination checkers of systems like Coq or Agda \cite{abelAltenkirch:jfp02%,altenkirchDanielsson:par10
+} rely on
 syntactic checks, and while they employ additional heuristics, they mainly ensure that the recursive calls have
 structurally smaller arguments.
 %% To get a recursive program to pass the standard termination checkers
@@ -331,7 +332,7 @@ other than sticking to some specific ``design patterns'' for
 
 Recently there has been a fair amount of research into moving the information about how functions consume and produce
 data to the type level, so that totality checking can be more modular
-\cite{atkeyMcBride:icfp13,mogelberg:csllics14,abelPientka:icfp13}. In particular the previous work on Guarded Recursion \cite{atkeyMcBride:icfp13,
+\cite{atkeyMcBride:icfp13,mogelberg:csllics14,sacchini:lics13,abelPientka:icfp13}. In particular the previous work on Guarded Recursion \cite{atkeyMcBride:icfp13,
 mogelberg:csllics14} has handled the case of ensuring totality for
 corecursion, i.e. manipulating infinite data. The issue
 of ensuring totality in a modular way for recursion, over well-founded data, was however
@@ -947,14 +948,8 @@ i|, then |mu F x = ∃ i. mutri F (i , x)| is the initial algebra of
 \end{theorem}
 Proof. From |F| weakly commuting with |∃ i| at type |mutri F| we
 obtain an indexed isomorphism |F (mu F) ≅ mu F| and so in particular
-<<<<<<< HEAD
-an algebra |F (mu F) ⇒ F|, the morphism from any other algebra is
-obtained from the one for |mutri| and inherits his uniqueness since
-there's a bijection between algebra morphisms like in \cite{mogelberg:csllics14}.
-=======
 an algebra |F (mu F) ⇒ F|, the universal morphism is
 obtained from the one for |mutri|:
->>>>>>> 8f40427504b66ca54e04f1137627d7e088aadcd0
 \begin{code}
 fold : (A : I → U) -> (F A ⇒ A) → (mu F ⇒ A)
 fold A f x (pack i m) = foldtri (\ (i , x) → A x)
