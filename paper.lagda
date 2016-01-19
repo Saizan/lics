@@ -788,14 +788,11 @@ restriction in further work.
 
 \section{Inductive Types}
 \label{sec:induction}
-
 In this section we will show how to implement the recursive type
 equations we have used in terms of fixed points on the universe, then
 the induction principle for |Nat|, and lastly we construct an initial
 algebra for any functor that properly commutes with |∃ i|.
-
 \subsection{Recursive Type Equations}
-
 For any function |F : U -> U| we can build |Fixb F : Time -> U| such
 that |Fixb F i = F (∃ j < i. Fixb F j)|.
 
@@ -1294,8 +1291,8 @@ The fixpoint operator |fix| and its uniqueness are implemented through
 well-founded induction on the natural numbers.
 %%In particular given $f \in \TmF {\Gamma.Time.
 
-\begin{definition}(∀ i) Let $\Gamma$ be a semantic context and $B \in \TmF {\Gamma.\Time} \U$ we define $∀ B = \Pi~\Time~B \in \TmF \Gamma \U$.
-\end{definition}  
+\begin{definition}(∀ i) Let $\Gamma$ be a semantic context and $B \in \TmF {\Gamma.\Time} \U$ we define semantic universal |Time| quantification as $∀~B = \Pi~\Time~B \in \TmF \Gamma \U$.
+\end{definition}
 \subsubsection{Representationally Independent Existential}
 
 We will interpret the existential quantification over |Time|
@@ -1448,9 +1445,10 @@ we obtain the result we wanted.
 
 
 To define the existential we can then truncate the
-corresponding $\Sigma$ type,
-\[ ∃~A = \Tr~(\Sigma~\Time~A) \]
-so that |(pack i a)| is interpreted as the introduction for $\Sigma$
+corresponding $\Sigma$ type.
+\begin{definition}(∃ i) Let $\Gamma$ be a semantic context and $B \in \TmF {\Gamma.\Time} \U$ we define semantic existential |Time| quantification as $∃~B = \Tr~(\Sigma~\Time~A) \in \TmF \Gamma \U$.
+\end{definition}
+In particular |(pack i a)| is interpreted as the introduction for $\Sigma$
 followed by $\tr$, while the case expression is interpreted as $\elim$
 combined with the projections of $\Sigma$.
 More generally we could consider $∃~A~B = \Tr~(\Sigma A B)$. If both $A$ and $B$ belong in $\U$ then $∃~A~B$ is
@@ -1460,7 +1458,7 @@ result about recovering strong sums from weak ones by parametricity.
 \subsubsection{Interpretation of the type isomorphisms}
 \label{sec:isoproofs}
 The validity in the model of the type isomorphisms from Figure
-\ref{fig:isos} follows in most cases from the properties of $\Tr$.
+\ref{fig:isos} follows from basic properties of $\Tr$ and its interaction with $\Time$.
 In the following we write $A ≅_\Gamma B$ for $\TmF \Gamma A ≅ \TmF \Gamma B$.
 \begin{lemma}
 \label{lem:codisc}
