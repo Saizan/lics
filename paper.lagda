@@ -1114,7 +1114,7 @@ and $f_r$ which commute with reflexivity:
 \begin{gather*}
 f_o : \Gamma_O \to \Delta_O \\
 f_r : \forall \gamma_0, \gamma_1 \in \Gamma.\; \Gamma_R(\gamma_0,\gamma_1) \to \Delta_R(f_o(\gamma_0), f_o(\gamma_1)) \\
-\mbox{such that}\\
+\mbox{such that}~
 \forall \gamma \in \Gamma_O.\; f_r (\Gamma_{\refl}(\gamma)) = \Delta_{\refl} (f_o(\gamma))
 \end{gather*}
 These morphisms should be thought of as substitutions, since they map
@@ -1451,33 +1451,27 @@ we obtain the result we wanted.
 
 To define the existential we can then truncate the
 corresponding $\Sigma$ type,
-\[ ∃~A = \Tr (\Sigma~\Time~A) \]
+\[ ∃~A = \Tr~(\Sigma~\Time~A) \]
 so that |(pack i a)| is interpreted as the introduction for $\Sigma$
 followed by $\tr$, while the case expression is interpreted as $\elim$
 combined with the projections of $\Sigma$.
-More generally we could consider $∃ (x : A) . B = \Tr (\Sigma x :
-A. B)$. If both $A$ and $B$ belong in $\U$ then $∃ (x : A) . B$ is
-equivalent to $\Sigma (x : A) . B$, which reproduces the standard
+More generally we could consider $∃~A~B = \Tr~(\Sigma A B)$. If both $A$ and $B$ belong in $\U$ then $∃~A~B$ is
+equivalent to $\Sigma~A~B$, which reproduces the standard
 result about recovering strong sums from weak ones by parametricity.
 
 \subsubsection{Interpretation of the type isomorphisms}
 \label{sec:isoproofs}
 The validity in the model of the type isomorphisms from Figure
 \ref{fig:isos} follows in most cases from the properties of $\Tr$.
-In the following we write $A ≅_\Gamma B$ for $\TmF \Gamma A ≅ \TmF \Gamma B$.
+In the following we write $A ≅ B$ for $∀ \Gamma \in \Obj(\CxtF),~\TmF \Gamma A ≅ \TmF \Gamma B$.
 \begin{lemma}
-  \label{lem:codisc}
-  The following isomorphisms are valid in the model:
-  \begin{itemize}
-  \item $\El~(\Tr~\Time) ≅_\Gamma ⊤$
-  \item For any $j_A,j_B : \TmF \Gamma \Time$, $\El~(∃ i.~ j_A < i × j_B < i) ≅_\Gamma ⊤$
-  \end{itemize}
+\label{lem:codisc}
+We have the isomorphism $\El~(\Tr~\Time) ≅ ⊤$.
 \end{lemma}
 \begin{proof}
-  In both cases the types on the left are of the form $\El~(\Tr~A)$
-  for a family of reflexive graphs $A$ where every two objects are
-  related and is inhabited. From this follows that $(\El~(\Tr~A))_O$
-  is a singleton set.
+Unfolding the definitions, $(\El~(\Tr~A))_O$ is the quotient of the
+set of natural numbers by the total relation, hence it is a
+singleton set.
 \end{proof}
 
 \begin{proposition}
@@ -1491,7 +1485,7 @@ In the following we write $A ≅_\Gamma B$ for $\TmF \Gamma A ≅ \TmF \Gamma B$
 
   \setlength{\tabcolsep}{2pt}
   \begin{tabular}{lll}
-  $\El~(∃ i.~A)$&$≅$& (by $\Sigma~\_ : \Time.~X ≅ \Time × X$)\\
+  $\El~(∃~(A\{\tfst\}))$&$≅$& (by $\Sigma~\Time~(X\{\tfst\}) ≅ \Time × X$)\\
   $\El~(\Tr~(\Time × \El~A)) $&$≅$& (by distributivity of $\Tr$ and $×$)\\
   $\El~(\Tr~\Time × \Tr~A) $&$≅$& (by Lemma \ref{lem:codisc})\\
   $\El~(⊤ × A) $&$≅$\\
@@ -1499,7 +1493,7 @@ In the following we write $A ≅_\Gamma B$ for $\TmF \Gamma A ≅ \TmF \Gamma B$
   \end{tabular}
 
   \begin{tabular}{lll}
-  $∀ i.~\El~A$&$≅$&(by $\Pi~\_ : \Time.~A ≅ \Time \to A$)\\
+  $\El~(∀~(A\{\tfst\}))$&$≅$&(by $\Pi~\Time~(X\{\tfst\}) ≅ \Time \to X$)\\
   $\Time \to \El~A$&$≅$& (by the universal property of $\Tr$)\\
   $\El~(\Tr~\Time) \to \El~A$&$≅$& (by Lemma \ref{lem:codisc})\\
   $⊤ \to \El~A$&$≅$&\\
