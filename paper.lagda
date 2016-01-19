@@ -1462,8 +1462,7 @@ singleton set.
 \end{proposition}
 \begin{proof}
   For reasons of space we only provide proofs for some of the
-  isomorphisms, the others also similarly rely on the interaction
-  between $\Tr$ and $\Time$.\footnote{A formal proof based on an
+  isomorphisms\footnote{A complete formal proof based on an
     axiomatization of $\Tr$ is available online
     \url{https://github.com/Saizan/param-isos}}.
 
