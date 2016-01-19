@@ -572,10 +572,6 @@ constructors, and inserting |tribk| in front of the recursive
 occurrence of |Nat uk|.
 \begin{code}
 Nat uk   = ⊤ + tribk Nat uk
-Zero uk : Nat uk
-Zero uk  = inl tt
-Suc uk : tribk Nat uk -> Nat uk
-Suc uk   = λ n . inr n
 \end{code}
 Now we can bind the clock variable with an existential to define
 \begin{code}
@@ -759,16 +755,13 @@ but having imposed that |guardb| and |forceb| form an isomorphism we can additio
 (pack i (pack j a)) = (pack (↑ j) (pack j a))
 \end{code}
 showing that the packaged times |i| and |↑ j| are in fact irrelevant in that position.
-
 In the case of |∀ i| we additionally have the usual isomorphisms that
 can be implemented for dependent functions:
-
 \begin{align*}
 |∀ i. A × B |\, &|≅|\, |∀ i. A × ∀ i. B| \\
 |∀ i. (x : A) → B|\, &|≅|\, |(x : A) → ∀ i . B| & i \not\in \mathsf{fv}(A)\\
 |∀ i. ∀ j. A|\, &|≅|\, |∀ j. ∀ i. A|\\
 \end{align*}
-
 The limitation to only finite |El A| in the isomorphism
 \begin{code}
 ∃ i . (x : El A) -> ∃ j < i. B ≅ (x : El A) → ∃ j . B
@@ -967,14 +960,7 @@ algebra morphism from |mu F| can be turned into one from |mutri F|.
 To determine whether a functor |F| weakly commutes with |∃ i| we make
 use of the isomorphisms of Figure \ref{fig:isos}, in particular we can
 handle the finitary-branching strictly positive functors but not
-functors of the form
-\begin{code}
-F X = Nat -> X
-\end{code}
-or
-\begin{code}
-F X = Stream X
-\end{code}
+functors of the form |F X = Nat -> X| or |F X = Stream X|
 because of the limitations already discussed.
 
 \subsection{(Guarded) Final Coalgebras}
@@ -1462,7 +1448,7 @@ The validity in the model of the type isomorphisms from Figure
 In the following we write $A ≅_\Gamma B$ for $\TmF \Gamma A ≅ \TmF \Gamma B$.
 \begin{lemma}
 \label{lem:codisc}
-Let $\Gamma$ be a semantic context, then $\El~(\Tr~\Time) ≅_\Gamma ⊤$.
+Given $\Gamma \in \Obj(\CxtF)$, then $\El~(\Tr~\Time) ≅_\Gamma ⊤$.
 \end{lemma}
 \begin{proof}
 Unfolding the definitions, $(\El~(\Tr~A))_O(\gamma)$ is the quotient of the
@@ -1477,7 +1463,9 @@ singleton set.
 \begin{proof}
   For reasons of space we only provide proofs for some of the
   isomorphisms, the others also similarly rely on the interaction
-  between $\Tr$ and $\Time$.
+  between $\Tr$ and $\Time$.\footnote{A formal proof based on an
+    axiomatization of $\Tr$ is available online
+    \url{https://github.com/Saizan/param-isos}}.
 
   Let $\Gamma$ be a semantic context and $A \in \TyF \Gamma$ then we have the two following chains of isomorphisms:\\
 
