@@ -957,16 +957,17 @@ Let |F| be an |X|-indexed functor that weakly commutes with |∃
 i|, then |mu F x = ∃ i. mutri F (i , x)| is the initial algebra of
 |F|.
 \end{theorem}
-Proof (Sketch). From |F| weakly commuting with |∃ i| at type |mutri F| we
+Proof. From |F| weakly commuting with |∃ i| at type |mutri F| we
 obtain an indexed isomorphism |F (mu F) ≅ mu F| and so in particular
-an algebra |F (mu F) ⇒ F|, the morphism from any other algebra is
-obtained from the one for |mutri| and inherits his uniqueness since
-there's a bijection between algebra morphisms like in \cite{mogelberg:lics2014}.
+an algebra |F (mu F) ⇒ F|, the universal morphism is
+obtained from the one for |mutri|:
 \begin{code}
 fold : (A : I → U) -> (F A ⇒ A) → (mu F ⇒ A)
 fold A f x (pack i m) = foldtri (\ (i , x) → A x)
                                 (λ j m → f (F extract m)) i x m
 \end{code}
+The uniqueness of |fold| is inherited from |foldtri| because any
+algebra morphism from |mu F| can be turned into one from |mutri F|.
 
 To determine whether a functor |F| weakly commutes with |∃ i| we make
 use of the isomorphisms of Figure \ref{fig:isos}, in particular we can
