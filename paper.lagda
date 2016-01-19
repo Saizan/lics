@@ -331,8 +331,8 @@ other than sticking to some specific ``design patterns'' for
 
 Recently there has been a fair amount of research into moving the information about how functions consume and produce
 data to the type level, so that totality checking can be more modular
-\cite{atkeyMcBride:icfp13,mogelberg:lics2014,Andreas}. In particular the previous work on Guarded Recursion \cite{atkeyMcBride:icfp13,
-mogelberg:lics2014} has handled the case of ensuring totality for
+\cite{atkeyMcBride:icfp13,mogelberg:csllics14,abelPientka:icfp13}. In particular the previous work on Guarded Recursion \cite{atkeyMcBride:icfp13,
+mogelberg:csllics14} has handled the case of ensuring totality for
 corecursion, i.e. manipulating infinite data. The issue
 of ensuring totality in a modular way for recursion, over well-founded data, was however
 left open. We address that problem by presenting a calculus that supports both corecursion
@@ -341,7 +341,7 @@ and recursion with a single guarded fixed point combinator.
 
 
 %%This paper extends to the case of recursion
-%%the previous work on Guarded Recursion \cite{atkeyMcBride:icfp13} \cite{mogelberg:lics2014},
+%%the previous work on Guarded Recursion \cite{atkeyMcBride:icfp13} \cite{mogelberg:csllics14},
 %%which was focused on corecursion and where inductive types were only
 %%given their primitive recursor, by presenting a more relaxed model where
 %%the connectives for guarded recursion can coexist with their duals.
@@ -355,7 +355,7 @@ We make the following contributions:
   coalgebras, i.e. inductive and coinductive datatypes. The type
   system is an extension of Martin-L\"{o}f Type Theory.
 \item We give an interpretation of the system into a relationally
-  parametric model of dependent type theory in reflexive graphs \cite{atkey:param},
+  parametric model of dependent type theory in reflexive graphs \cite{atkeyGhaniJohann:popl14},
   drawing a parallel between \Time{} quantification and parametric
   polymorphism.
 \item In particular we show how existential \Time{} quantification supporting
@@ -468,7 +468,7 @@ ones = fix (λ k xs . cons 1 xs)
 \end{code}
 
 Other examples involving |tritk| can be found in previous work that
-focuses on coinduction \cite{atkeyMcBride:icfp13} \cite{mogelberg:lics2014}. An important
+focuses on coinduction \cite{atkeyMcBride:icfp13} \cite{mogelberg:csllics14}. An important
 difference is that in the present work |tritk| is no longer a full
 applicative functor.
 In fact while we do still support |<*>|,
@@ -615,7 +615,7 @@ conclude they are equal.
 %% In other models of guarded recursion, |∀ k| or analogous modalities
 %% are modeled by categorical limits, so it wasn't a stretch to imagine
 %% |∃ k| as a colimit, however the trick for them to meaningfully coexist
-%% is to be parametric limits and colimits, as in \cite{parametric-limit}.
+%% is to be parametric limits and colimits, as in \cite{dunphyReddy:lics04}.
 
 Once we scale up to a dependently typed language we will also be able
 to implement an induction principle in terms of |fix| in Section
@@ -627,7 +627,7 @@ to express programs more directly, rather than introducing additional combinator
 \section{From Clocks to Time}
 \label{sec:lang}
 The notation we have used in the examples so far is closely modeled on
-the one used in \cite{atkeyMcBride:icfp13} and \cite{mogelberg:lics2014}. In particular
+the one used in \cite{atkeyMcBride:icfp13} and \cite{mogelberg:csllics14}. In particular
 clocks are a convenient abstraction over explicitly handling time values,
 since we can use the same clock to refer to different amounts of time
 depending on the context.
@@ -645,7 +645,7 @@ So the same clock variable represents different time values in different parts o
 %%environment, while |tritk| and |tribk| locally override it with a smaller one.
 
 To clarify the flow of |Time| we instead adopt a syntax inspired by Sized
-Types \cite{Andreas}: we give the translation for types in Figure \ref{fig:translation}. This notation will also offer more flexibility in
+Types \cite{abelPientka:icfp13}: we give the translation for types in Figure \ref{fig:translation}. This notation will also offer more flexibility in
 the dependent case. In fact the first step is to add to the dependently
 typed language of Figure \ref{fig:TT} a new type |Time|, together with inequality
 |(i j : Time) ⊢ i ≤ j|, zero |0 : Time|, successor |↑ : Time -> Time| and a maximum operator |⊔ : Time -> Time -> Time|
@@ -962,7 +962,7 @@ Proof (Sketch). From |F| weakly commuting with |∃ i| at type |mutri F| we
 obtain an indexed isomorphism |F (mu F) ≅ mu F| and so in particular
 an algebra |F (mu F) ⇒ F|, the morphism from any other algebra is
 obtained from the one for |mutri| and inherits his uniqueness since
-there's a bijection between algebra morphisms like in \cite{mogelberg:lics2014}.
+there's a bijection between algebra morphisms like in \cite{mogelberg:csllics14}.
 \begin{code}
 fold : (A : I → U) -> (F A ⇒ A) → (mu F ⇒ A)
 fold A f x (pack i m) = foldtri (\ (i , x) → A x)
@@ -1014,7 +1014,7 @@ i|, then |nu F x = ∀ i. nutri F (i , x)| is the final coalgebra of
 Here we show with an example that the language can handle cases of
 mixed recursion-corecursion by nested uses of |fix|.
 
-From \cite{foundational} we take the example of a function
+From \cite{blanchettePopescuTraytel:icfp15} we take the example of a function
 \begin{code}
 cat : Nat -> Stream Nat
 \end{code}
@@ -1069,21 +1069,21 @@ Since \cite{Reynolds}, Relational Parametricity
 \mytodo{caps?} has been shown to be a good tool to capture invariance
 properties of programs, initially applied to invariance of polymorphic
 types under change of data representation, but also invariance under
-change of units of measure \cite{Kennedy} or manipulations of vectors
-under translations \cite{atkey:algebraic-indexed}. \mytodo{cite atkey 2014 ?}
+change of units of measure \cite{kennedy:units09} or manipulations of vectors
+under translations \cite{atkeyJohannKennedy:popl13}. \mytodo{cite atkey 2014 ?}
 
 The basic principle is that types get modeled as a pair of a set of
 values and a relation over that set. The relation describes a property
 that has to be preserved when manipulating such values.
 
 To model our language then we make use of the relationally parametric model of
-dependent type theory from \cite{atkey:param}, defining |Time| as the
+dependent type theory from \cite{atkeyGhaniJohann:popl14}, defining |Time| as the
 type of natural numbers related by |<=| and the universe |U| as
 small sets related by proof-irrelevant relations (their
 ``Small, Discrete, Proof Irrelevant Universe'').
 
 \subsection{Reflexive Graphs as a Category with Families}
-The model is formulated as a Category with Families \cite{cwf}, of
+The model is formulated as a Category with Families \cite{dybjer:internalTypeTheory}, of
 which we do not repeat the full definition but the main components are
 \begin{itemize}
 \item a category $\CxtF$ of semantic contexts
@@ -1197,7 +1197,7 @@ We are now ready to define $\U$ and $\El$:
 \end{array}
 \end{gather*}
 Assuming that the set-theoretic universe $\Univ$ is closed under the corresponding operations,
-the universe $\U$ is shown by \citep{atkey:param} to contain natural numbers
+the universe $\U$ is shown by \citep{atkeyGhaniJohann:popl14} to contain natural numbers
 and to be closed under product and sum types, $\Sigma$ types and to contain $\Pi (x :
 A).~\El~(B[x])$ for any small type $A$.
 
@@ -1297,12 +1297,12 @@ well-founded induction on the natural numbers.
 %%In particular given $f \in \TmF {\Gamma.Time.
 
 \begin{definition}(∀ i) Let $\Gamma$ be a semantic context and $B \in \TmF {\Gamma.\Time} \U$ we define $∀ B = \Pi~\Time~B \in \TmF \Gamma \U$.
-\end{definition}  
+\end{definition}
 \subsubsection{Representationally Independent Existential}
 
 We will interpret the existential quantification over |Time|
 in a way that corresponds to a parametric colimit in the sense of
-\cite{parametric-limits}. However we will show a connection with the standard $\Sigma$ type by
+\cite{dunphyReddy:lics04}. However we will show a connection with the standard $\Sigma$ type by
 first defining a general operation to convert any small reflexive
 graph into a discrete and proof-irrelevant one.
 
@@ -1520,7 +1520,7 @@ singleton set.
 
 The application of Nakano's guard modality \cite{nakano:lics00} to coinductive types
 started with \cite{atkeyMcBride:icfp13} by the introduction of clock
-variables to an otherwise simply typed language, \cite{mogelberg:lics2014}
+variables to an otherwise simply typed language, \cite{mogelberg:csllics14}
 extended this result to a dependently typed setting where guarded
 recursive types are constructed via fixed points on universes.
 Their models are based on the topos of trees: a context with a
@@ -1548,7 +1548,7 @@ i.e. we lack
 pure  : ∀ i . (A i → ∀ j < i. A j)
 \end{code}
 for arbitrary types |A| and |B|. This is also the case for the system
-in \cite{Krishnaswami13:simple-frp} where the Nakano modality is used to control the
+in \cite{krishnaswami:icfp13} where the Nakano modality is used to control the
 resource usage of funtional reactive programs. The lack of |pure| does
 not seem to cause expressivity problems with regard to the examples in \cite{atkeyMcBride:icfp13}, and |pure| can be
 implemented explicitly for those types that would support restriction
@@ -1557,9 +1557,9 @@ maps.
 The notation we use for the |trit| and |trib| modalities agrees with
 their use in provability logic and its Kripke
 models. Unfortunately we conflict with other works on guarded
-recursive types where $\trit$ is used as a nameless |∀ i| \cite{Krishnaswami13:simple-frp,ranald}.
+recursive types where $\trit$ is used as a nameless |∀ i| \cite{krishnaswami:icfp13,cloustonBizjakGrathwohlBirkedal:fossacs15}.
 
-In HOL the system of tactics presented in \cite{foundational} allows
+In HOL the system of tactics presented in \cite{blanchettePopescuTraytel:icfp15} allows
 corecursive calls to appear under ``well-behaved'' corecursive
 functions, which consume as much of their coinductive inputs as they
 produce, i.e. that in our system would preserve the time values.
@@ -1568,7 +1568,7 @@ and the well-behavedness of a function is not part of its type, so the
 user interface is simpler, even if less expressive.
 
 \subsection{Comparison to Sized Types}
-When extended with copatterns \cite{Andreas}, Sized Types also justify
+When extended with copatterns \cite{abelPientka:icfp13}, Sized Types also justify
 the totality of (co)recursive definitions by well-founded induction on
 what there is called |Size|. The calculus presented there is defined
 as an extension of System F-omega so equality of terms does not affect
@@ -1595,7 +1595,7 @@ and coinductive types. The calculus can handle arbitrary branching inductive
 types thanks to a model where |Size| is interpreted as the set of
 ordinal numbers.
 Sized Types have also been experimentally added to Agda and have been
-useful to allow more general patterns of recursion \cite{James:MSFP},
+useful to allow more general patterns of recursion \cite{abelChapman:msfp14},
 however the current definitional equality of Agda does not validate
 the isomorphisms from our language, so the problem of values that
 should be equal but differ only in |Size| values is still present.
@@ -1734,7 +1734,7 @@ in addition to formulating a decidable subset of the equational theory presented
 
 % The bibliography should be embedded for final submission.
 
-\bibliography{icfp}
+\bibliography{auto-paper,icfp}
 
 \end{document}
 
