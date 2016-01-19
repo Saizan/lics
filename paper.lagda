@@ -1086,7 +1086,7 @@ small sets related by proof-irrelevant relations (their
 The model is formulated as a Category with Families \cite{cwf}, of
 which we do not repeat the full definition but the main components are
 \begin{itemize}
-\item a category $\CxtF$ of contexts
+\item a category $\CxtF$ of semantic contexts
 \item a collection $\TyF \Gamma$ of semantic types for each $\Gamma \in \Obj(\CxtF)$
 \item a collection $\TmF \Gamma A$ of semantic terms, for each $A \in \TyF \Gamma$.
 \end{itemize}
