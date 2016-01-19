@@ -1309,8 +1309,8 @@ graph into a discrete and proof-irrelevant one.
 Given a small $A \in \TyF \Gamma$ we define $\Tr A \in \TmF \Gamma \U$
 which we call the discrete truncation of $A$. On closed types $(\El
 (\Tr A))_O$ is the colimit of $A$ as a diagram from $\RG$ and more
-generally it will have the following universal property $\TmF \Gamma {A \to \El B} ≅ \TmF
-\Gamma {\El~(\Tr A) \to \El B}$.
+generally it will have the following universal property $\TmF
+\Gamma {\El~(\Tr A) \to \El B} ≅ \TmF \Gamma {A \to \El B}$.
 
 To give an explicit construction for $\Tr A$ we first present some
 preliminary definitions on reflexive graphs and then lift those to the
@@ -1379,7 +1379,7 @@ A$; the introduction sends an element of $A$ to its equivalence class:
 \end{gather*}
 We then have dependent elimination of $\Tr A$ into other types $B \in
 \TmF {\Gamma.\El~(\Tr A)} {\U}$ that live in the universe.
-Given a $t \in \TmF {\Gamma.A} {\El~B\{\tfst,\tr\}}$ we define $\elim$:
+Given a $t \in \TmF {\Gamma.A} {\El~B\{⟨\tfst,\tr⟩\}}$ we define $\elim$:
 \begin{gather*}
 \begin{array}{l c l}
 \multicolumn{3}{l}{\elim : \TmF {\Gamma.\El~(\Tr A)} {\El~B}}\\
@@ -1463,13 +1463,13 @@ result about recovering strong sums from weak ones by parametricity.
 \label{sec:isoproofs}
 The validity in the model of the type isomorphisms from Figure
 \ref{fig:isos} follows in most cases from the properties of $\Tr$.
-In the following we write $A ≅ B$ for $∀ \Gamma \in \Obj(\CxtF),~\TmF \Gamma A ≅ \TmF \Gamma B$.
+In the following we write $A ≅_\Gamma B$ for $\TmF \Gamma A ≅ \TmF \Gamma B$.
 \begin{lemma}
 \label{lem:codisc}
-We have the isomorphism $\El~(\Tr~\Time) ≅ ⊤$.
+Let $\Gamma$ be a semantic context, then $\El~(\Tr~\Time) ≅_\Gamma ⊤$.
 \end{lemma}
 \begin{proof}
-Unfolding the definitions, $(\El~(\Tr~A))_O$ is the quotient of the
+Unfolding the definitions, $(\El~(\Tr~A))_O(\gamma)$ is the quotient of the
 set of natural numbers by the total relation, hence it is a
 singleton set.
 \end{proof}
@@ -1481,22 +1481,26 @@ singleton set.
 \begin{proof}
   For reasons of space we only provide proofs for some of the
   isomorphisms, the others also similarly rely on the interaction
-  between $\Tr$ and $\Time$.\\
+  between $\Tr$ and $\Time$.
 
+  Let $\Gamma$ be a semantic context and $A \in \TyF \Gamma$ then we have the two following chains of isomorphisms:\\
+
+  \noindent
   \setlength{\tabcolsep}{2pt}
   \begin{tabular}{lll}
-  $\El~(∃~(A\{\tfst\}))$&$≅$& (by $\Sigma~\Time~(X\{\tfst\}) ≅ \Time × X$)\\
-  $\El~(\Tr~(\Time × \El~A)) $&$≅$& (by distributivity of $\Tr$ and $×$)\\
-  $\El~(\Tr~\Time × \Tr~A) $&$≅$& (by Lemma \ref{lem:codisc})\\
-  $\El~(⊤ × A) $&$≅$\\
+  $\El~(∃~(A\{\tfst\}))$&$≅_\Gamma$& (by $\Sigma~\Time~(X\{\tfst\}) ≅_\Gamma \Time × X$)\\
+  $\El~(\Tr~(\Time × \El~A)) $&$≅_\Gamma$& (by distributivity of $\Tr$ and $×$)\\
+  $\El~(\Tr~\Time × \Tr~A) $&$≅_\Gamma$& (by Lemma \ref{lem:codisc})\\
+  $\El~(⊤ × A) $&$≅_\Gamma$\\
   $\El~A$&\\
-  \end{tabular}
+  \end{tabular}\\
 
+  \noindent
   \begin{tabular}{lll}
-  $\El~(∀~(A\{\tfst\}))$&$≅$&(by $\Pi~\Time~(X\{\tfst\}) ≅ \Time \to X$)\\
-  $\Time \to \El~A$&$≅$& (by the universal property of $\Tr$)\\
-  $\El~(\Tr~\Time) \to \El~A$&$≅$& (by Lemma \ref{lem:codisc})\\
-  $⊤ \to \El~A$&$≅$&\\
+  $\El~(∀~(A\{\tfst\}))$&$≅_\Gamma$&(by $\Pi~\Time~(X\{\tfst\}) ≅_\Gamma \Time \to X$)\\
+  $\Time \to \El~A$&$≅_\Gamma$& (by the universal property of $\Tr$)\\
+  $\El~(\Tr~\Time) \to \El~A$&$≅_\Gamma$& (by Lemma \ref{lem:codisc})\\
+  $⊤ \to \El~A$&$≅_\Gamma$&\\
   $\El~A$\\
   \end{tabular}
   %% \vspace{20pt}
