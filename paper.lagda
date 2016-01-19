@@ -755,13 +755,13 @@ but having imposed that |guardb| and |forceb| form an isomorphism we can additio
 (pack i (pack j a)) = (pack (↑ j) (pack j a))
 \end{code}
 showing that the packaged times |i| and |↑ j| are in fact irrelevant in that position.
-In the case of |∀ i| we additionally have the usual isomorphisms that
-can be implemented for dependent functions:
-\begin{align*}
-|∀ i. A × B |\, &|≅|\, |∀ i. A × ∀ i. B| \\
-|∀ i. (x : A) → B|\, &|≅|\, |(x : A) → ∀ i . B| & i \not\in \mathsf{fv}(A)\\
-|∀ i. ∀ j. A|\, &|≅|\, |∀ j. ∀ i. A|\\
-\end{align*}
+%% In the case of |∀ i| we additionally have the usual isomorphisms that
+%% can be implemented for dependent functions:
+%% \begin{align*}
+%% |∀ i. A × B |\, &|≅|\, |∀ i. A × ∀ i. B| \\
+%% |∀ i. (x : A) → B|\, &|≅|\, |(x : A) → ∀ i . B| & i \not\in \mathsf{fv}(A)\\
+%% |∀ i. ∀ j. A|\, &|≅|\, |∀ j. ∀ i. A|\\
+%% \end{align*}
 The limitation to only finite |El A| in the isomorphism
 \begin{code}
 ∃ i . (x : El A) -> ∃ j < i. B ≅ (x : El A) → ∃ j . B
