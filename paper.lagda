@@ -433,7 +433,7 @@ Node : ∀ k . A → List (tribk RoseTree uk A) → RoseTree uk A
 \subsection{Fixedpoint combinators}
 \label{fixb}
 
-So far we have seen directly recursive definitions, here we show the
+So far, we have seen directly recursive definitions, here we show the
 fixed point combinator they are based on and how it is derived from
 a more general one.
 
@@ -558,7 +558,7 @@ it synchronized with the clock |k| given to the function we unfold.
 In previous work on guarded recursion, coinductive types were obtained
 by universal clock quantification over their guarded variant, e.g. |∀
 k . Stream uk Nat| would be the type of coinductive streams. In the
-present work we are able to dualize that result and obtain inductive types by
+present work, we are able to dualize that result and obtain inductive types by
 existential quantification of the guarded variant, e.g. |∃ k . Nat
 uk|.
 
@@ -570,7 +570,6 @@ Here we show the natural numbers as the simplest example. The guarded
 version |Nat uk| is defined using a sum type, to encode the two
 constructors, and inserting |tribk| in front of the recursive
 occurrence of |Nat uk|.
-
 \begin{code}
 Nat uk   = ⊤ + tribk Nat uk
 Zero uk : Nat uk
@@ -578,7 +577,6 @@ Zero uk  = inl tt
 Suc uk : tribk Nat uk -> Nat uk
 Suc uk   = λ n . inr n
 \end{code}
-
 Now we can bind the clock variable with an existential to define
 \begin{code}
 Nat = ∃ k . Nat uk
@@ -647,7 +645,7 @@ To clarify the flow of |Time| we instead adopt a syntax inspired by Sized
 Types \cite{Andreas}: we give the translation for types in Figure \ref{fig:translation}. This notation will also offer more flexibility in
 the dependent case. In fact the first step is to add to the dependently
 typed language of Figure \ref{fig:TT} a new type |Time|, together with inequality
-|(i j : Time) ⊢ i ≤ j|, zero |0 : Time|, successor |↑ : Time -> Time| and a maximum operator |⊔ : Time -> Time -> Time|
+|(i j : Time) ⊢ i ≤ j|, zero |0 : Time|, successor |↑ : Time -> Time| and a maximum operator\\ |⊔ : Time -> Time -> Time|
 (Figure \ref{fig:Time}).
 
 The theory we will present does not support decidable typechecking and
@@ -777,7 +775,7 @@ The limitation to only finite |El A| in the isomorphism
 \end{code}
 is because, to go from right to left, we need to find a |i| which is
 an upper bound for all the |j|s returned by the function $(x : \El~A) \to
-∃ j .~B$ across the whole domain $\El~A$. However given only |⊔| we can
+∃~j .~B$ across the whole domain $\El~A$. However given only |⊔| we can
 only compute the upper bound of finitely many time values.  We did not
 introduce a $\mathsf{limit} : (A \to \Time) \to \Time$ operator because |A| might
 contain |Time| itself, and that would have led to impredicativity
